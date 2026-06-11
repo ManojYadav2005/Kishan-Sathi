@@ -1,5 +1,5 @@
 const Auth = (() => {
-  const BASE = 'http://localhost:3000/api/auth';
+  const BASE = '/api/auth';
 
   function getToken() { return localStorage.getItem('ks_token'); }
   function getUser() { try { return JSON.parse(localStorage.getItem('ks_user') || 'null'); } catch { return null; } }
