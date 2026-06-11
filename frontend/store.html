@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agri Store | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .store-tabs { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+    .store-tab {
+      padding: 10px 24px; border-radius: var(--radius-full);
+      font-weight: 600; font-size: .95rem; cursor: pointer;
+      border: 2px solid var(--neutral-200); background: var(--white);
+      transition: var(--transition); font-family: var(--font-body);
+    }
+    .store-tab.active {
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      color: white; border-color: transparent;
+      box-shadow: 0 4px 14px rgba(26,122,82,.3);
+    }
+    .store-tab:hover:not(.active) { border-color: var(--green-400); background: var(--green-50); transform: translateY(-1px); }
+
+    .filter-bar {
+      display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+      background: var(--white); padding: 20px 24px;
+      border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);
+      margin-bottom: 28px; border: 1px solid var(--neutral-100);
+    }
+    .filter-bar .input-group { margin:0; flex:1; min-width:160px; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+
+    .product-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm); overflow: hidden;
+      border: 1px solid var(--neutral-100); transition: var(--transition);
+      display: flex; flex-direction: column;
+    }
+    .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); border-color: var(--green-200); }
+    .product-card img { width:100%; height:170px; object-fit:cover; transition: transform .4s ease; }
+    .product-card:hover img { transform: scale(1.05); }
+    .product-card-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:8px; }
+    .product-card-name { font-weight:700; font-size:.95rem; color:var(--neutral-800); font-family: var(--font-display); }
+    .product-card-price { font-size:1.2rem; font-weight:800; color:var(--green-600); }
+    .product-card-cat { }
+    .product-card-actions { margin-top:auto; padding-top:12px; }
+
+    /* Offline stores */
+    .offline-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:22px; }
+    .offline-card {
+      background:var(--white); border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-sm); overflow:hidden;
+      border:1px solid var(--neutral-100); transition:var(--transition);
+    }
+    .offline-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-4px); }
+    .offline-card img { width:100%; height:160px; object-fit:cover; transition: transform .4s ease; }
+    .offline-card:hover img { transform: scale(1.05); }
+    .offline-card-body { padding:18px; }
+    .offline-card-name { font-weight:700; color:var(--green-700); margin-bottom:8px; font-size:1.08rem; font-family: var(--font-display); }
+    .offline-map-link {
+      display:flex; align-items:center; gap:6px;
+      color:var(--sky-600); font-size:.88rem; text-decoration:none; margin-bottom:6px;
+      transition: var(--transition-fast);
+    }
+    .offline-map-link:hover { color:var(--green-600); transform: translateX(2px); }
+
+    /* Cart drawer */
+    .cart-drawer {
+      position:fixed; right:0; top:0; height:100vh; width:380px;
+      background:var(--white); box-shadow:-6px 0 30px rgba(0,0,0,.15);
+      z-index:2000; transform:translateX(100%); transition:transform .35s cubic-bezier(.4,0,.2,1);
+      display:flex; flex-direction:column;
+    }
+    .cart-drawer.open { transform:translateX(0); }
+    .drawer-header {
+      padding:22px; background:linear-gradient(135deg, var(--green-800), var(--green-700)); color:white;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .drawer-header h3 { color:white; font-size:1.1rem; font-family: var(--font-display); }
+    .drawer-close { background:none; border:none; color:white; font-size:1.5rem; cursor:pointer; transition: var(--transition-fast); }
+    .drawer-close:hover { transform: scale(1.15); }
+    .drawer-body { flex:1; overflow-y:auto; padding:20px; }
+    .drawer-footer { padding:20px; border-top:1px solid var(--neutral-100); }
+    .cart-item {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 0; border-bottom:1px solid var(--neutral-100); font-size:.9rem;
+    }
+    .cart-item-remove { background:none; border:none; color:var(--red-500); cursor:pointer; font-size:1rem; transition: var(--transition-fast); }
+    .cart-item-remove:hover { transform: scale(1.2); }
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1999; display:none; backdrop-filter: blur(4px); }
+    .overlay.open { display:block; }
+
+    .cart-fab {
+      position:fixed; bottom:24px; right:24px;
+      background:linear-gradient(135deg, var(--green-700), var(--green-600)); color:white; border:none;
+      border-radius:var(--radius-full); padding:16px 24px;
+      font-weight:700; box-shadow:var(--shadow-xl); cursor:pointer;
+      z-index:999; transition:var(--transition);
+      display:flex; align-items:center; gap:10px; font-size:1rem;
+      font-family:var(--font-body);
+    }
+    .cart-fab:hover { background:linear-gradient(135deg, var(--green-600), var(--green-500)); transform:scale(1.06) translateY(-2px); }
+    .cart-count {
+      background:var(--gold-400); color:var(--neutral-900);
+      width:24px; height:24px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight: 800;
+    }
+
+    /* Order form */
+    .order-modal {
+      position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .order-modal-inner {
+      background:var(--white); border-radius:var(--radius-xl);
+      padding:32px; width:100%; max-width:480px; max-height:90vh;
+      overflow-y:auto; box-shadow:var(--shadow-lg);
+    }
+    .order-modal h3 { color:var(--green-800); margin-bottom:20px; }
+    .order-modal .close-modal { float:right; background:none; border:none; font-size:1.5rem; cursor:pointer; }
+    .order-success {
+      text-align:center; padding:40px 20px;
+      background:var(--green-50); border-radius:var(--radius-lg);
+      border:2px solid var(--green-300, #80c99e);
+    }
+    .order-success .icon { font-size:3rem; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-500) 100%);">
+    <h1>🛒 <span data-i18n="store_title">Agri Store</span></h1>
+    <p>Seeds, fertilizers, pesticides & tools — online + local offline stores nearby</p>
+  </div>
+
+  <div class="container section">
+    <!-- Store Tabs -->
+    <div class="store-tabs">
+      <button class="store-tab active" onclick="showSection('online', this)">🛒 Online Store</button>
+      <button class="store-tab" onclick="showSection('offline', this)">🏪 Local Stores in My Area</button>
+    </div>
+
+    <!-- ── ONLINE STORE ── -->
+    <div id="section-online">
+      <div class="filter-bar">
+        <div class="input-group">
+          <label for="catFilter">Category</label>
+          <select id="catFilter" onchange="renderProducts()">
+            <option value="All">All Products</option>
+            <option value="seeds">🌱 Seeds</option>
+            <option value="fertilizers">🌿 Fertilizers</option>
+            <option value="pesticides">🧪 Pesticides</option>
+            <option value="tools">🛠️ Tools</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="sortPrice">Sort by Price</label>
+          <select id="sortPrice" onchange="renderProducts()">
+            <option value="none">Default</option>
+            <option value="asc">Low → High</option>
+            <option value="desc">High → Low</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="productSearch">Search</label>
+          <input type="text" id="productSearch" placeholder="Search products…" oninput="renderProducts()" />
+        </div>
+      </div>
+
+      <div class="product-grid" id="productGrid"></div>
+    </div>
+
+    <!-- ── OFFLINE STORES ── -->
+    <div id="section-offline" style="display:none;">
+      <div class="alert-box alert-success mb-3">📍 These are verified agri stores in the Sikandrabad / Bulandshahr area. Share your store info via the Community forum!</div>
+      <div class="offline-grid">
+
+        <div class="offline-card">
+          <img src="store/agristore1.jpg" alt="Pantnagar Beej Bhandar" onerror="this.src='https://placehold.co/400x150/2e8b57/white?text=Agri+Store'"/>
+          <div class="offline-card-body">
+            <div class="offline-card-name">Pantnagar Beej Bhandar</div>
+            <a href="https://www.google.com/maps/search/Sabzi+Mandi+Sikandrabad" target="_blank" class="offline-map-link">📍 Sabzi Mandi, Sikandrabad</a>
+            <p style="font-size:.9rem;">📞 <a href="tel:09412229234">09412229234</a></p>
+            <span class="badge badge-green mt-1">Seeds & Fertilizers</span>
+          </div>
+        </div>
+
+        <div class="offline-card">
+          <img src="store/kishankhad.jpg" alt="Kishan Khad Bhandar" onerror="this.src='https://placehold.co/400x150/2e8b57/white?text=Agri+Store'"/>
+          <div class="offline-card-body">
+            <div class="offline-card-name">Kishan Khad Bhandar</div>
+            <a href="https://www.google.com/maps/dir//near+income+tax+office,+Mohalla+kayasthwara,+Sikandrabad,+Uttar+Pradesh+203205" target="_blank" class="offline-map-link">📍 Mohalla Kayasthwara, Sikandrabad</a>
+            <p style="font-size:.9rem;">📞 <a href="tel:09927536576">09927536576</a></p>
+            <span class="badge badge-earth mt-1">Fertilizers & Pesticides</span>
+          </div>
+        </div>
+
+        <div class="offline-card">
+          <img src="store/dkagri.jpg" alt="DK Agri Clinic" onerror="this.src='https://placehold.co/400x150/2e8b57/white?text=DK+Agri'"/>
+          <div class="offline-card-body">
+            <div class="offline-card-name">DK Agri Clinic</div>
+            <a href="https://www.google.com/maps/place/DK+Agri+Clinic+%26+Agri+Business+Centre/@28.4544357,77.706688,17z" target="_blank" class="offline-map-link">📍 Sikandrabad Road</a>
+            <p style="font-size:.9rem;">📞 <a href="tel:09760285871">09760285871</a></p>
+            <span class="badge badge-sky mt-1">Full Service Agri Clinic</span>
+          </div>
+        </div>
+
+        <div class="offline-card">
+          <img src="store/bhagri.jpg" alt="BH Agri Bhandar" onerror="this.src='https://placehold.co/400x150/2e8b57/white?text=BH+Agri'"/>
+          <div class="offline-card-body">
+            <div class="offline-card-name">B.H. Agri Bhandar Margoob</div>
+            <a href="https://maps.app.goo.gl/pmWL33r5s1ZAdJzx5" target="_blank" class="offline-map-link">📍 Asfabad Chandpura</a>
+            <p style="font-size:.9rem;">📞 <a href="tel:06395399987">06395399987</a></p>
+            <span class="badge badge-green mt-1">Seeds & Tools</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart FAB -->
+  <button class="cart-fab" onclick="openCart()">🛒 Cart <span class="cart-count" id="cartCount">0</span></button>
+
+  <!-- Cart Drawer -->
+  <div class="overlay" id="overlay" onclick="closeCart()"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="drawer-header">
+      <h3>🧺 Your Cart</h3>
+      <button class="drawer-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="drawer-body" id="cartBody">
+      <p class="text-muted" style="text-align:center;padding-top:40px;">Your cart is empty</p>
+    </div>
+    <div class="drawer-footer">
+      <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:12px;font-size:1.05rem;">
+        <span>Total</span><span id="cartTotal" class="text-green">₹0</span>
+      </div>
+      <button class="btn btn-gold btn-full" onclick="openOrder()">🚚 Place Order</button>
+    </div>
+  </div>
+
+  <!-- Order Modal -->
+  <div class="order-modal" id="orderModal" style="display:none;">
+    <div class="order-modal-inner">
+      <button class="close-modal" onclick="closeOrder()">✕</button>
+      <h3>🚚 Delivery Details</h3>
+      <div id="orderForm">
+        <div class="input-group">
+          <label>Your Name</label>
+          <input type="text" id="custName" placeholder="Full name" />
+        </div>
+        <div class="input-group">
+          <label>Delivery Address</label>
+          <textarea id="custAddress" rows="3" placeholder="Village, Tehsil, District, PIN"></textarea>
+        </div>
+        <div class="input-group">
+          <label>Phone Number</label>
+          <input type="tel" id="custPhone" placeholder="10-digit number" />
+        </div>
+        <div class="input-group">
+          <label>Payment Method</label>
+          <select id="custPayment">
+            <option value="">Select Payment</option>
+            <option value="COD">💵 Cash on Delivery</option>
+            <option value="UPI">📱 UPI</option>
+            <option value="Card">💳 Debit/Credit Card</option>
+          </select>
+        </div>
+        <div style="background:var(--neutral-50);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:.9rem;">
+          <strong>Order Summary:</strong>
+          <div id="orderSummary" style="margin-top:8px;"></div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="placeOrder()">✅ Confirm Order</button>
+      </div>
+      <div id="orderSuccess" style="display:none;" class="order-success">
+        <div class="icon">✅</div>
+        <h3 class="text-green">Order Placed!</h3>
+        <p class="mt-1 text-muted">Thank you! Your order has been received. We'll call you to confirm delivery.</p>
+        <button class="btn btn-primary mt-3" onclick="closeOrder()">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+      // Seeds
+      { name:'Wheat Seeds (HD-2967)', price:120, category:'seeds', image:'store/Wheatseeds.jpg' },
+      { name:'Sugarcane Setts (Co-0238)', price:300, category:'seeds', image:'store/Sugarcane.jpg' },
+      { name:'Paddy Seeds (Pusa Basmati 1121)', price:160, category:'seeds', image:'store/paddyseeds.jpg' },
+      { name:'Mustard Seeds (Varuna)', price:115, category:'seeds', image:'store/mustardseeds.jpg' },
+      { name:'Chickpea Seeds (GNG-1958)', price:130, category:'seeds', image:'store/chickpeas.jpg' },
+      { name:'Pea Seeds (Arkel)', price:95, category:'seeds', image:'store/peasseed.jpg' },
+      { name:'Potato Seed (Kufri Jyoti)', price:450, category:'seeds', image:'store/potatoseed.jpg' },
+      { name:'Maize Seeds (HQPM-1)', price:135, category:'seeds', image:'store/maizeseed.jpg' },
+      { name:'Tomato Seeds (Pusa Rohini)', price:105, category:'seeds', image:'store/tomatoseed.jpg' },
+      { name:'Moong Seeds (Samrat)', price:125, category:'seeds', image:'store/moongseed.jpg' },
+      { name:'Brinjal Seeds (Pusa Purple Long)', price:100, category:'seeds', image:'store/brinjalseed.jpg' },
+      { name:'Cauliflower Seeds (Pusa Snowball)', price:140, category:'seeds', image:'store/cauliflowerseed.jpg' },
+      { name:'Okra Seeds (Varsha Uphar)', price:98, category:'seeds', image:'store/okraseed.jpg' },
+      { name:'Barley Seeds (RD-2552)', price:110, category:'seeds', image:'store/barleyseed.jpg' },
+      { name:'Coriander Seeds (RCr-41)', price:75, category:'seeds', image:'store/Coriander.jpg' },
+      { name:'Radish Seeds (Pusa Chetki)', price:85, category:'seeds', image:'store/radish.jpg' },
+      { name:'Carrot Seeds (Pusa Rudhira Red)', price:90, category:'seeds', image:'store/carrot.jpg' },
+      { name:'Pumpkin Seeds (Arka Suryamukhi)', price:130, category:'seeds', image:'store/pumpkinseed.jpg' },
+      { name:'Bottle Gourd Seeds (Pusa Naveen)', price:120, category:'seeds', image:'store/bottlegourd.jpg' },
+      { name:'Black Gram Seeds (T-9)', price:110, category:'seeds', image:'store/black.jpg' },
+      // Fertilizers
+      { name:'Urea Fertilizer', price:340, category:'fertilizers', image:'store/urea.jpg' },
+      { name:'Organic Compost', price:250, category:'fertilizers', image:'store/organic.jpg' },
+      { name:'DAP Fertilizer', price:360, category:'fertilizers', image:'store/dap.jpg' },
+      { name:'NPK 20:20:20', price:400, category:'fertilizers', image:'store/npk.jpg' },
+      { name:'Vermicompost', price:280, category:'fertilizers', image:'store/vermi.jpg' },
+      { name:'Bio-Fertilizer', price:300, category:'fertilizers', image:'store/bio.jpg' },
+      { name:'Potash Fertilizer', price:320, category:'fertilizers', image:'store/potash.jpg' },
+      // Pesticides
+      { name:'Neem Pesticide', price:220, category:'pesticides', image:'store/neem.jpg' },
+      { name:'Herbal Insecticide', price:260, category:'pesticides', image:'store/herbal.jpg' },
+      { name:'Fungicide Spray', price:240, category:'pesticides', image:'store/fungicide.jpg' },
+      { name:'Termite Control', price:210, category:'pesticides', image:'store/termite.jpg' },
+      { name:'Borer Control', price:230, category:'pesticides', image:'store/borer.jpg' },
+      { name:'Larvicide', price:250, category:'pesticides', image:'store/larvicide.jpg' },
+      { name:'Aphid Killer', price:200, category:'pesticides', image:'store/aphid.jpg' },
+      { name:'Mite Controller', price:215, category:'pesticides', image:'store/mite.jpg' },
+      // Tools
+      { name:'Hand Sprayer', price:499, category:'tools', image:'store/hand.jpg' },
+      { name:'Soil Tester Kit', price:699, category:'tools', image:'store/soil.jpg' },
+      { name:'Shovel', price:320, category:'tools', image:'store/shovel.jpg' },
+      { name:'Sickle', price:150, category:'tools', image:'store/sickle.jpg' },
+      { name:'Hose Pipe 10m', price:650, category:'tools', image:'store/hose.jpg' },
+      { name:'Drip Irrigation Kit', price:899, category:'tools', image:'store/drip.jpg' },
+      { name:'Hoe Tool', price:275, category:'tools', image:'store/hoe.jpg' },
+      { name:'Garden Gloves', price:99, category:'tools', image:'store/garden.jpg' },
+    ];
+
+    const catIcons = { seeds:'🌱', fertilizers:'🌿', pesticides:'🧪', tools:'🛠️' };
+    let cart = [];
+
+    function renderProducts() {
+      const cat    = document.getElementById("catFilter").value;
+      const sort   = document.getElementById("sortPrice").value;
+      const search = document.getElementById("productSearch").value.toLowerCase();
+
+      let filtered = products.filter(p => {
+        const matchCat    = cat === "All" || p.category === cat;
+        const matchSearch = p.name.toLowerCase().includes(search);
+        return matchCat && matchSearch;
+      });
+
+      if (sort === "asc")  filtered.sort((a,b) => a.price - b.price);
+      if (sort === "desc") filtered.sort((a,b) => b.price - a.price);
+
+      document.getElementById("productGrid").innerHTML = filtered.map((p, i) => {
+        const trName = typeof Lang !== 'undefined' ? Lang.t(p.name) : p.name;
+        const trCategory = typeof Lang !== 'undefined' ? Lang.t(p.category) : p.category;
+        const addBtnText = typeof Lang !== 'undefined' ? Lang.t('add_to_cart') : '+ Add to Cart';
+        return `
+        <div class="product-card">
+          <img src="${p.image}" alt="${trName}" onerror="this.src='https://placehold.co/400x160/f2f7f4/2e8b57?text=${encodeURIComponent(trName)}'" />
+          <div class="product-card-body">
+            <div><span class="badge badge-green">${catIcons[p.category]} ${trCategory}</span></div>
+            <div class="product-card-name">${trName}</div>
+            <div class="product-card-price">₹${p.price}</div>
+            <div class="product-card-actions">
+              <button class="btn btn-primary btn-sm btn-full" onclick="addToCart(${products.indexOf(p)})">${addBtnText}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function addToCart(idx) {
+      cart.push({ ...products[idx] });
+      updateCartUI();
+      // Flash feedback
+      document.querySelectorAll('.product-card')[document.getElementById('productGrid').querySelectorAll('.product-card').length - 1];
+    }
+
+    function updateCartUI() {
+      const count = cart.length;
+      document.getElementById("cartCount").textContent = count;
+      const total = cart.reduce((s,i) => s + i.price, 0);
+      document.getElementById("cartTotal").textContent = "₹" + total.toLocaleString('en-IN');
+
+      if (!count) {
+        const emptyText = typeof Lang !== 'undefined' ? Lang.t('cart_empty') : 'Your cart is empty';
+        document.getElementById("cartBody").innerHTML = `<p class="text-muted" style="text-align:center;padding-top:40px;">${emptyText}</p>`;
+        return;
+      }
+      document.getElementById("cartBody").innerHTML = cart.map((item, i) => {
+        const trName = typeof Lang !== 'undefined' ? Lang.t(item.name) : item.name;
+        return `
+        <div class="cart-item">
+          <div>
+            <div style="font-weight:600;font-size:.9rem;">${trName}</div>
+            <div class="text-green" style="font-size:.88rem;">₹${item.price}</div>
+          </div>
+          <button class="cart-item-remove" onclick="removeFromCart(${i})">✕</button>
+        </div>`;
+      }).join('');
+    }
+
+    function removeFromCart(i) { cart.splice(i, 1); updateCartUI(); }
+    function openCart()  { document.getElementById("cartDrawer").classList.add("open"); document.getElementById("overlay").classList.add("open"); }
+    function closeCart() { document.getElementById("cartDrawer").classList.remove("open"); document.getElementById("overlay").classList.remove("open"); }
+
+    function openOrder() {
+      if (!cart.length) { alert("Your cart is empty!"); return; }
+      closeCart();
+      document.getElementById("orderForm").style.display = "block";
+      document.getElementById("orderSuccess").style.display = "none";
+      document.getElementById("orderModal").style.display = "flex";
+      const totalText = typeof Lang !== 'undefined' ? Lang.t('total') : 'Total';
+      document.getElementById("orderSummary").innerHTML = cart.map(i => {
+        const trName = typeof Lang !== 'undefined' ? Lang.t(i.name) : i.name;
+        return `<div style="display:flex;justify-content:space-between;"><span>${trName}</span><span class="text-green">₹${i.price}</span></div>`;
+      }).join('') +
+        `<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--neutral-200);margin-top:8px;padding-top:8px;"><span>${totalText}</span><span class="text-green">₹${cart.reduce((s,i)=>s+i.price,0).toLocaleString('en-IN')}</span></div>`;
+    }
+
+    function closeOrder() { document.getElementById("orderModal").style.display = "none"; }
+
+    function placeOrder() {
+      const name = document.getElementById("custName").value.trim();
+      const addr = document.getElementById("custAddress").value.trim();
+      const phone = document.getElementById("custPhone").value.trim();
+      const pay   = document.getElementById("custPayment").value;
+      if (!name || !addr || !phone || !pay) { alert("Please fill in all delivery details."); return; }
+      document.getElementById("orderForm").style.display = "none";
+      document.getElementById("orderSuccess").style.display = "block";
+      cart = [];
+      updateCartUI();
+    }
+
+    function showSection(section, btn) {
+      document.getElementById("section-online").style.display  = section === "online"  ? "block" : "none";
+      document.getElementById("section-offline").style.display = section === "offline" ? "block" : "none";
+      document.querySelectorAll(".store-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    renderProducts();
+    if(typeof Auth!=="undefined") Auth.updateNav();
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

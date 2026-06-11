@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic vs Chemical | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px; }
+    @media(max-width:640px){ .compare-grid { grid-template-columns:1fr; } }
+
+    .compare-card {
+      border-radius: var(--radius-xl); padding: 28px;
+      border: 2px solid; transition: var(--transition);
+    }
+    .compare-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .compare-card.organic  { background:var(--green-50);  border-color:var(--green-300); }
+    .compare-card.chemical { background:var(--red-100);   border-color:var(--red-500); }
+    .compare-card h3 { font-size:1.3rem; margin-bottom:14px; font-family: var(--font-display); }
+    .compare-card.organic  h3 { color:var(--green-800); }
+    .compare-card.chemical h3 { color:var(--red-500); }
+    .compare-card ul { padding-left:18px; }
+    .compare-card li { margin-bottom:8px; font-size:.95rem; line-height:1.6; }
+
+    .compare-table { width:100%; border-collapse:separate; border-spacing:0; }
+    .compare-table th { padding:14px 18px; text-align:left; font-weight:600; font-size:.9rem; }
+    .compare-table th:first-child { background:var(--neutral-700); color:white; border-radius: var(--radius-md) 0 0 0; }
+    .compare-table th.organic  { background:linear-gradient(135deg, var(--green-600), var(--green-500)); color:white; }
+    .compare-table th.chemical { background:linear-gradient(135deg, var(--red-500), #c82333); color:white; border-radius: 0 var(--radius-md) 0 0; }
+    .compare-table td { padding:13px 18px; border-bottom:1px solid var(--neutral-100); font-size:.92rem; }
+    .compare-table tbody tr { transition: var(--transition-fast); }
+    .compare-table tbody tr:nth-child(even) td { background:var(--neutral-50); }
+    .compare-table tbody tr:hover td { background:var(--green-50); }
+
+    .score-bar { height:10px; border-radius:99px; background:var(--neutral-200); margin-top:6px; overflow: hidden; }
+    .score-fill { height:100%; border-radius:99px; transition: width .6s ease; }
+    .score-fill.green { background:linear-gradient(90deg, var(--green-500), var(--green-400)); }
+    .score-fill.red   { background:linear-gradient(90deg, var(--red-500), #ef4444); }
+
+    .chart-container { background:var(--white); border-radius:var(--radius-xl); padding:28px; box-shadow:var(--shadow-sm); margin-bottom:32px; border: 1px solid var(--neutral-100); }
+
+    .cta-card {
+      background:linear-gradient(135deg,var(--green-900),var(--green-700),var(--green-600));
+      color:white; border-radius:var(--radius-2xl); padding:36px;
+      display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+      box-shadow: 0 12px 32px rgba(6,42,30,.35);
+    }
+    .cta-card h3 { color:white; font-size:1.4rem; font-family: var(--font-display); }
+    .cta-card p  { color:var(--green-200); margin-top:8px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 35%,#1A7A52 70%,var(--green-500) 100%);">
+    <h1>⚖️ <span data-i18n="compare_title">Organic vs Chemical Farming</span></h1>
+    <p data-i18n="compare_sub">Data-driven comparison to help you choose the right approach for your fields</p>
+  </div>
+
+  <div class="container section">
+
+    <!-- Side by side cards -->
+    <div class="compare-grid mb-3">
+      <div class="compare-card organic">
+        <h3 data-i18n="organic_farming">🌱 Organic Farming</h3>
+        <ul data-i18n="organic_desc_list_html">
+          <li>Uses compost, green manure, vermicompost</li>
+          <li>Natural pest control (neem, bio-agents)</li>
+          <li>Builds long-term soil health</li>
+          <li>Lower input costs after transition</li>
+          <li>Premium market prices for produce</li>
+          <li>Eco-friendly; reduces groundwater pollution</li>
+          <li>Eligible for organic certification premium</li>
+        </ul>
+      </div>
+      <div class="compare-card chemical">
+        <h3 data-i18n="chemical_farming">🧪 Chemical Farming</h3>
+        <ul data-i18n="chemical_desc_list_html">
+          <li>Uses Urea, DAP, NPK synthetic fertilizers</li>
+          <li>Synthetic pesticides for fast pest control</li>
+          <li>High short-term yields</li>
+          <li>Faster results — better for market timing</li>
+          <li>Soil degradation over 5–10 years</li>
+          <li>Risk of chemical residue in produce</li>
+          <li>High input cost; subsidy-dependent</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-container">
+      <h3 class="text-green mb-2" data-i18n="perf_comparison">📊 Performance Comparison (Score out of 5)</h3>
+      <canvas id="compareChart" height="90"></canvas>
+    </div>
+
+    <!-- Comparison Table -->
+    <h3 class="text-green mb-2" data-i18n="detailed_compare">📋 Detailed Comparison</h3>
+    <div class="table-wrapper mb-3">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th data-i18n="aspect">Aspect</th>
+            <th class="organic" data-i18n="organic">🌱 Organic</th>
+            <th class="chemical" data-i18n="chemical">🧪 Chemical</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong data-i18n="input_cost">Input Cost</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="cost_organic_val">Low (₹500–1,200/bigha)</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="cost_chemical_val">High (₹1,800–3,500/bigha)</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="yield_short_term">Yield (Short Term)</strong></td>
+            <td><span data-i18n="yield_short_organic_val">Moderate — 10–20% lower initially</span></td>
+            <td><span data-i18n="yield_short_chemical_val">High — full potential in 1st year</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="yield_long_term">Yield (Long Term)</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="yield_long_organic_val">Stable — improves over time</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="yield_long_chemical_val">Declining — soil degradation</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="soil_health">Soil Health</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="soil_organic_val">Improves microbial activity</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="soil_chemical_val">Reduces over 5–10 years</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="market_price">Market Price</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="price_organic_val">10–30% premium for certified organic</span></td>
+            <td><span data-i18n="price_chemical_val">Standard mandi prices</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="water_usage">Water Usage</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="water_organic_val">Lower — better water retention</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="water_chemical_val">Higher — leaching increases need</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="env_impact">Environmental Impact</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="env_organic_val">Eco-friendly — no chemical runoff</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="env_chemical_val">Risk of water & soil pollution</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="transition_time">Transition Time</strong></td>
+            <td><span data-i18n="trans_organic_val">3 years to full organic certification</span></td>
+            <td><span data-i18n="trans_chemical_val">Immediate results</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="govt_support">Government Support</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="govt_organic_val">Paramparagat Krishi Vikas Yojana (PKVY)</span></td>
+            <td><span data-i18n="govt_chemical_val">Fertilizer subsidy (reducing)</span></td>
+          </tr>
+          <tr>
+            <td><strong data-i18n="food_safety">Food Safety</strong></td>
+            <td style="color:var(--green-700);"><span data-i18n="safety_organic_val">No chemical residues</span></td>
+            <td style="color:var(--red-500);"><span data-i18n="safety_chemical_val">Risk if overuse</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-card">
+      <div style="flex:1;">
+        <h3 data-i18n="ready_explore_organic">🌱 Ready to Explore Organic Farming?</h3>
+        <p data-i18n="ready_explore_sub">Visit the Education Hub for step-by-step guides, or connect with Krishi Vigyan Kendra (KVK) in your district. Get ₹50,000 support per hectare under PKVY.</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="education.html" class="btn btn-gold" data-i18n="learn_more">📚 Learn More</a>
+        <a href="https://pgsindia-ncof.gov.in/" target="_blank" class="btn btn-secondary" style="color:white;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1);" data-i18n="pkvy_portal">🏛️ PKVY Portal</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const labels = ['Yield', 'Cost Efficiency', 'Soil Health', 'Sustainability', 'Environmental', 'Market Value'].map(l => typeof Lang !== 'undefined' ? Lang.t(l) : l);
+      const orgLabel = typeof Lang !== 'undefined' ? Lang.t('organic_farming') : '🌱 Organic';
+      const chemLabel = typeof Lang !== 'undefined' ? Lang.t('chemical_farming') : '🧪 Chemical';
+
+      new Chart(document.getElementById('compareChart'), {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: orgLabel,
+              data: [3, 4, 5, 5, 5, 4],
+              backgroundColor: 'rgba(46,139,87,0.2)',
+              borderColor: '#2e8b57',
+              borderWidth: 2.5,
+              pointBackgroundColor: '#2e8b57',
+            },
+            {
+              label: chemLabel,
+              data: [5, 2, 2, 2, 1, 3],
+              backgroundColor: 'rgba(217,64,64,0.15)',
+              borderColor: '#d94040',
+              borderWidth: 2.5,
+              pointBackgroundColor: '#d94040',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              beginAtZero: true, max: 5,
+              ticks: { stepSize: 1, font: { size: 11 } },
+              pointLabels: { font: { size: 12, weight: '600' } },
+              grid: { color: 'rgba(0,0,0,.08)' }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 20 } }
+          }
+        }
+      });
+    });
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

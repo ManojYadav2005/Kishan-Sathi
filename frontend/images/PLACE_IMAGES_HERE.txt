@@ -1,0 +1,15 @@
+Paste crop planner and general crop images in this folder.
+Expected filenames:
+- wheat.jpg
+- potato.jpg
+- mustard.jpg
+- paddy.jpg
+- maize.jpg
+- bajra.jpg
+
+- watermelon.jpg
+- muskmelon.jpg
+- onion.jpg
+- Wheat.jpg
+- Potato.jpg
+- Onion.jpg

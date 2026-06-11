@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Planner | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .season-tabs {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      background: var(--white); padding: 22px 24px;
+      border-radius: var(--radius-xl); box-shadow: var(--shadow-md);
+      margin-bottom: 32px; border: 1px solid var(--neutral-100);
+    }
+    .season-tab {
+      flex: 1; min-width: 140px;
+      padding: 18px 14px; border: 2px solid var(--neutral-200);
+      border-radius: var(--radius-lg); cursor: pointer;
+      text-align: center; background: var(--neutral-50);
+      transition: var(--transition); font-family: var(--font-body);
+      font-weight: 600; font-size: 1rem; color: var(--neutral-600);
+    }
+    .season-tab:hover { border-color: var(--green-400); background: var(--green-50); transform: translateY(-2px); }
+    .season-tab.active {
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      color: white;
+      box-shadow: 0 6px 20px rgba(26,122,82,.3);
+    }
+    .season-tab .season-icon { font-size: 1.9rem; display: block; margin-bottom: 8px; }
+    .season-tab .season-dates { font-size: .75rem; opacity: .8; margin-top: 4px; }
+
+    .crop-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-100);
+      transition: var(--transition);
+    }
+    .crop-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); border-color: var(--green-200); }
+    .crop-card img { width:100%; height:180px; object-fit:cover; cursor:pointer; display:block; transition: transform .4s ease; }
+    .crop-card:hover img { transform: scale(1.05); }
+    .crop-card-body { padding: 18px; }
+    .crop-card-name { font-size: 1.1rem; font-weight: 700; color: var(--green-700); font-family: var(--font-display); }
+    .crop-toggle-btn {
+      width: 100%; margin-top: 14px; padding: 10px;
+      background: var(--green-50); border: 1.5px solid var(--green-200);
+      border-radius: var(--radius-md); color: var(--green-700);
+      font-weight: 600; cursor: pointer; transition: var(--transition);
+      font-family: var(--font-body); font-size: .9rem;
+    }
+    .crop-toggle-btn:hover { background: var(--green-100); transform: translateY(-1px); }
+
+    .crop-details-panel {
+      display: none; padding: 16px; margin-top: 10px;
+      background: var(--green-50); border-radius: var(--radius-md);
+      border: 1px solid var(--green-200); animation: fadeInUp .25s ease;
+    }
+    .crop-details-panel.open { display: block; animation: fadeInUp .25s ease; }
+    .crop-details-panel li { margin-bottom: 6px; font-size: .92rem; }
+
+    .no-results { text-align:center; padding: 72px 24px; color: var(--neutral-400); }
+    .no-results .icon { font-size: 3.5rem; margin-bottom: 14px; }
+
+    .season-info-bar {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      padding: 16px 20px; background: var(--gold-50);
+      border-radius: var(--radius-lg); border-left: 4px solid var(--gold-500);
+      margin-bottom: 24px; align-items: center; font-size: .9rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .season-info-bar strong { color: var(--earth-700); }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-500) 100%);">
+    <h1>🗓️ <span data-i18n="crop_title">Smart Crop Planner</span></h1>
+    <p>Season-wise crop recommendations with detailed seed, irrigation & cost data</p>
+  </div>
+
+  <div class="container section">
+
+    <!-- Season Selector -->
+    <div class="season-tabs">
+      <button class="season-tab" id="tab-kharif" onclick="selectSeason('kharif')">
+        <span class="season-icon">🌧️</span> Kharif
+        <div class="season-dates">June – October</div>
+      </button>
+      <button class="season-tab" id="tab-rabi" onclick="selectSeason('rabi')">
+        <span class="season-icon">❄️</span> Rabi
+        <div class="season-dates">November – March</div>
+      </button>
+      <button class="season-tab" id="tab-zaid" onclick="selectSeason('zaid')">
+        <span class="season-icon">🌤️</span> Zaid
+        <div class="season-dates">April – June</div>
+      </button>
+    </div>
+
+    <!-- Season Info Bar -->
+    <div class="season-info-bar" id="season-info" style="display:none;"></div>
+
+    <!-- Crop Grid -->
+    <div class="grid-auto" id="cropGrid">
+      <div class="no-results">
+        <div class="icon">🌾</div>
+        <p>Select a season above to view recommended crops</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const crops = [
+      {
+        name: "🌾 Wheat", image: "images/wheat.jpg", season: "rabi", id: "wheat",
+        details: [
+          { label: "Seed Required", value: "45 kg per bigha" },
+          { label: "Ploughing", value: "2–3 times" },
+          { label: "Row Spacing", value: "20 cm" },
+          { label: "Sowing Depth", value: "4–5 cm" },
+          { label: "Irrigation", value: "2–4 times (CRI, tillering, heading, dough)" },
+          { label: "Harvest Duration", value: "120–150 days" },
+          { label: "Est. Cost", value: "₹1,800–₹2,000 per bigha" },
+          { label: "Expected Yield", value: "12–18 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🥔 Potato", image: "images/potato.jpg", season: "rabi", id: "potato",
+        details: [
+          { label: "Seed Required", value: "8 quintals per bigha" },
+          { label: "Ploughing", value: "3–4 times" },
+          { label: "Spacing", value: "60×20 cm" },
+          { label: "Sowing Depth", value: "5–6 cm" },
+          { label: "Irrigation", value: "5–7 times (earthing up required)" },
+          { label: "Harvest Duration", value: "70–90 days" },
+          { label: "Est. Cost", value: "₹12,000–₹15,000 per bigha" },
+          { label: "Expected Yield", value: "50–80 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🌻 Mustard", image: "images/mustard.jpg", season: "rabi", id: "mustard",
+        details: [
+          { label: "Seed Required", value: "2.5 kg per bigha" },
+          { label: "Ploughing", value: "2–3 times" },
+          { label: "Row Spacing", value: "30 cm" },
+          { label: "Sowing Depth", value: "2–3 cm" },
+          { label: "Irrigation", value: "1–2 times (rosette + flowering)" },
+          { label: "Harvest Duration", value: "110–130 days" },
+          { label: "Est. Cost", value: "₹1,000–₹1,500 per bigha" },
+          { label: "Expected Yield", value: "5–8 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🌾 Paddy (Rice)", image: "images/paddy.jpg", season: "kharif", id: "paddy",
+        details: [
+          { label: "Seed Required", value: "30 kg per bigha (transplanted)" },
+          { label: "Ploughing", value: "2–3 times with puddling" },
+          { label: "Spacing", value: "20×15 cm" },
+          { label: "Sowing Depth", value: "2–3 cm" },
+          { label: "Irrigation", value: "Standing water required" },
+          { label: "Harvest Duration", value: "100–150 days" },
+          { label: "Est. Cost", value: "₹2,500–₹3,000 per bigha" },
+          { label: "Expected Yield", value: "15–20 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🌽 Maize", image: "images/maize.jpg", season: "kharif", id: "maize",
+        details: [
+          { label: "Seed Required", value: "8 kg per bigha" },
+          { label: "Ploughing", value: "2–3 times" },
+          { label: "Spacing", value: "60×20 cm" },
+          { label: "Sowing Depth", value: "4–5 cm" },
+          { label: "Irrigation", value: "3–4 times (knee-high, tasseling, grain fill)" },
+          { label: "Harvest Duration", value: "90–120 days" },
+          { label: "Est. Cost", value: "₹1,500–₹2,000 per bigha" },
+          { label: "Expected Yield", value: "12–18 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🌾 Bajra", image: "images/bajra.jpg", season: "kharif", id: "bajra",
+        details: [
+          { label: "Seed Required", value: "3 kg per bigha" },
+          { label: "Ploughing", value: "2 times" },
+          { label: "Row Spacing", value: "45 cm (plant 10 cm)" },
+          { label: "Sowing Depth", value: "2–3 cm" },
+          { label: "Irrigation", value: "Rainfed / 1–2 times" },
+          { label: "Harvest Duration", value: "75–90 days" },
+          { label: "Est. Cost", value: "₹800–₹1,200 per bigha" },
+          { label: "Expected Yield", value: "7–10 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🍉 Watermelon", image: "images/watermelon.jpg", season: "zaid", id: "watermelon",
+        details: [
+          { label: "Seed Required", value: "1 kg per bigha" },
+          { label: "Ploughing", value: "2–3 times" },
+          { label: "Spacing", value: "2×0.6 m" },
+          { label: "Sowing Depth", value: "2–3 cm" },
+          { label: "Irrigation", value: "5–6 times (drip preferred)" },
+          { label: "Harvest Duration", value: "65–80 days" },
+          { label: "Est. Cost", value: "₹3,000–₹4,000 per bigha" },
+          { label: "Expected Yield", value: "60–80 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🍈 Muskmelon", image: "images/muskmelon.jpg", season: "zaid", id: "muskmelon",
+        details: [
+          { label: "Seed Required", value: "1 kg per bigha" },
+          { label: "Ploughing", value: "2–3 times" },
+          { label: "Spacing", value: "1.5×0.6 m" },
+          { label: "Sowing Depth", value: "2–3 cm" },
+          { label: "Irrigation", value: "5–6 times" },
+          { label: "Harvest Duration", value: "60–75 days" },
+          { label: "Est. Cost", value: "₹3,000–₹4,000 per bigha" },
+          { label: "Expected Yield", value: "40–60 qtl per bigha" },
+        ]
+      },
+      {
+        name: "🧅 Onion", image: "images/onion.jpg", season: "zaid", id: "onion",
+        details: [
+          { label: "Seed Required", value: "5 kg per bigha" },
+          { label: "Ploughing", value: "3–4 times" },
+          { label: "Spacing", value: "15×10 cm" },
+          { label: "Sowing Depth", value: "1–2 cm (nursery first)" },
+          { label: "Irrigation", value: "7–8 times" },
+          { label: "Harvest Duration", value: "120–150 days" },
+          { label: "Est. Cost", value: "₹6,000–₹8,000 per bigha" },
+          { label: "Expected Yield", value: "40–60 qtl per bigha" },
+        ]
+      }
+    ];
+
+    const seasonInfo = {
+      kharif: { icon: "🌧️", text: "<strong>Kharif Season (June – October):</strong> Monsoon-dependent crops sown at start of rains. Good soil moisture essential. Watch for excess waterlogging." },
+      rabi:   { icon: "❄️", text: "<strong>Rabi Season (November – March):</strong> Winter crops relying on residual soil moisture and irrigation. Frost protection needed in Jan–Feb." },
+      zaid:   { icon: "🌤️", text: "<strong>Zaid Season (April – June):</strong> Short-duration summer crops between rabi and kharif. High irrigation requirement. Select fast-maturing varieties." }
+    };
+
+    let currentSeason = null;
+
+    function selectSeason(season) {
+      currentSeason = season;
+      document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + season).classList.add('active');
+
+      const info = seasonInfo[season];
+      const infoBar = document.getElementById('season-info');
+      infoBar.innerHTML = info.icon + ' ' + info.text;
+      infoBar.style.display = 'flex';
+
+      renderCrops(season);
+    }
+
+    function renderCrops(season) {
+      const grid = document.getElementById('cropGrid');
+      const filtered = crops.filter(c => c.season === season);
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="no-results"><div class="icon">🌾</div><p>No crops found for this season.</p></div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(crop => {
+        const trName = typeof Lang !== 'undefined' ? Lang.t(crop.name) : crop.name;
+        const trDetails = crop.details.map(d => {
+          const lbl = typeof Lang !== 'undefined' ? Lang.t(d.label) : d.label;
+          const val = typeof Lang !== 'undefined' ? Lang.t(d.value) : d.value;
+          return `<li><span style="color:var(--green-700);font-weight:600;">• ${lbl}:</span> ${val}</li>`;
+        }).join('');
+        const detailsBtnText = typeof Lang !== 'undefined' ? '📋 ' + Lang.t('view_details') : '📋 View Details';
+        const infoSubText = season.charAt(0).toUpperCase() + season.slice(1) + ' crop • Click image for details';
+
+        return `
+        <div class="crop-card">
+          <img src="${crop.image}" alt="${trName}" onerror="this.src='https://placehold.co/400x170/2e8b57/white?text=${encodeURIComponent(trName)}'" onclick="toggleDetails('${crop.id}')"/>
+          <div class="crop-card-body">
+            <div class="crop-card-name">${trName}</div>
+            <div style="font-size:.82rem;color:var(--neutral-400);margin-top:4px;">${infoSubText}</div>
+            <button class="crop-toggle-btn" onclick="toggleDetails('${crop.id}')">${detailsBtnText}</button>
+            <div class="crop-details-panel" id="panel-${crop.id}">
+              <ul style="list-style:none;padding:0;">
+                ${trDetails}
+              </ul>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function toggleDetails(id) {
+      const panel = document.getElementById('panel-' + id);
+      panel.classList.toggle('open');
+      const btn = panel.previousElementSibling;
+      const isOpen = panel.classList.contains('open');
+      if (typeof Lang !== 'undefined') {
+        btn.textContent = isOpen ? '▲ ' + Lang.t('hide_details') : '📋 ' + Lang.t('view_details');
+      } else {
+        btn.textContent = isOpen ? '▲ Hide Details' : '📋 View Details';
+      }
+    }
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

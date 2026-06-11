@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ploughing Services | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .ploughing-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width: 860px) {
+      .ploughing-layout { grid-template-columns: 1fr; }
+    }
+
+    .service-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      border-left: 5px solid var(--green-600);
+      padding: 22px;
+      margin-bottom: 18px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeUp .35s ease;
+      border: 1px solid var(--neutral-100);
+      border-left: 5px solid var(--green-600);
+    }
+    .service-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .service-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .service-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--green-800);
+      font-family: var(--font-display);
+    }
+    .service-rate {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--green-700);
+      background: var(--green-50);
+      padding: 5px 14px;
+      border-radius: var(--radius-lg);
+      white-space: nowrap;
+      border: 1px solid var(--green-200);
+    }
+    .service-village {
+      font-size: 0.9rem;
+      color: var(--neutral-500);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .service-equipments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 4px 0;
+    }
+    .equip-tag {
+      background: var(--neutral-50);
+      border: 1px solid var(--neutral-200);
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      color: var(--neutral-700);
+      font-weight: 600;
+      transition: var(--transition-fast);
+    }
+    .equip-tag:hover { background: var(--green-50); border-color: var(--green-200); }
+    .service-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      border-top: 1px solid var(--neutral-100);
+      padding-top: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .provider-info {
+      font-size: 0.88rem;
+      color: var(--neutral-600);
+    }
+    .provider-info strong {
+      color: var(--neutral-800);
+    }
+
+    /* Filter Sidebar */
+    .filter-card {
+      background: var(--white);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md);
+      padding: 28px;
+      position: sticky;
+      top: 84px;
+      border: 1px solid var(--neutral-100);
+    }
+    .filter-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--green-800);
+      margin-bottom: 18px;
+      border-bottom: 2px solid var(--green-100);
+      padding-bottom: 10px;
+      font-family: var(--font-display);
+    }
+
+    /* Tabs Bar */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      border-bottom: 2.5px solid var(--green-100);
+      padding-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--neutral-500);
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+    .tab-btn:hover {
+      color: var(--green-700);
+    }
+    .tab-btn.active {
+      color: var(--green-700);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6.5px;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green-600), var(--green-500));
+      border-radius: 99px;
+    }
+
+    .form-panel, .my-panel {
+      display: none;
+    }
+    .active-panel {
+      display: block;
+    }
+
+    .panel-card {
+      background: var(--white);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+      animation: fadeUp .3s ease;
+      border: 1px solid var(--neutral-100);
+    }
+
+    .equip-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media(max-width: 500px) {
+      .equip-grid { grid-template-columns: 1fr; }
+    }
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--neutral-700);
+      background: var(--neutral-50);
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--neutral-200);
+      transition: var(--transition);
+    }
+    .checkbox-wrap:hover {
+      border-color: var(--green-300);
+      background: var(--green-50);
+      transform: translateY(-1px);
+    }
+    .checkbox-wrap input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green-600);
+    }
+
+    .error-box {
+      background: var(--red-100);
+      border: 1.5px solid var(--red-500);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      color: var(--red-500);
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      display: none;
+      animation: fadeInUp .2s ease;
+    }
+    .success-box {
+      background: var(--green-50);
+      border: 1.5px solid var(--green-400);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      color: var(--green-700);
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      display: none;
+      animation: fadeInUp .2s ease;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--neutral-400);
+    }
+    .empty-state .icon {
+      font-size: 3.5rem;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-600) 100%);">
+    <h1>🚜 <span data-i18n="ploughing_title">Ploughing & Land Preparation</span></h1>
+    <p data-i18n="ploughing_sub">Find local tractor services or list your rates for field ploughing</p>
+  </div>
+
+  <div class="container section">
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-browse" onclick="switchTab('browse')" data-i18n="browse_services">Browse Services</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')" data-i18n="register_listing">Register Listing</button>
+      <button class="tab-btn" id="tab-my" onclick="switchTab('my')" data-i18n="my_listings">My Listings</button>
+    </div>
+
+    <!-- Browse Tab Layout -->
+    <div class="ploughing-layout active-panel" id="panel-browse">
+      
+      <!-- Filters Sidebar -->
+      <div class="filter-card">
+        <h4 class="filter-title" data-i18n="nav_compare">Filter Options</h4>
+        <div class="input-group">
+          <label data-i18n="select_district">Select District</label>
+          <select id="filterDistrict" onchange="loadServices()">
+            <option value="" data-i18n="select_district_prompt">— Select District —</option>
+            <option>Agra</option><option>Aligarh</option><option>Allahabad</option>
+            <option>Ambedkar Nagar</option><option>Amethi</option><option>Amroha</option>
+            <option>Auraiya</option><option>Azamgarh</option><option>Baghpat</option>
+            <option>Bahraich</option><option>Ballia</option><option>Balrampur</option>
+            <option>Banda</option><option>Barabanki</option><option>Bareilly</option>
+            <option>Basti</option><option>Bhadohi</option><option>Bijnor</option>
+            <option>Budaun</option><option>Bulandshahr</option><option>Chandauli</option>
+            <option>Chitrakoot</option><option>Deoria</option><option>Etah</option>
+            <option>Etawah</option><option>Faizabad</option><option>Farrukhabad</option>
+            <option>Fatehpur</option><option>Firozabad</option><option>Gautam Buddha Nagar</option>
+            <option>Ghaziabad</option><option>Ghazipur</option><option>Gonda</option>
+            <option>Gorakhpur</option><option>Hamirpur</option><option>Hapur</option>
+            <option>Hardoi</option><option>Hathras</option><option>Jalaun</option>
+            <option>Jaunpur</option><option>Jhansi</option><option>Kannauj</option>
+            <option>Kanpur Dehat</option><option>Kanpur Nagar</option><option>Kasganj</option>
+            <option>Kaushambi</option><option>Kheri</option><option>Kushinagar</option>
+            <option>Lalitpur</option><option>Lucknow</option><option>Maharajganj</option>
+            <option>Mahoba</option><option>Mainpuri</option><option>Mathura</option>
+            <option>Mau</option><option>Meerut</option><option>Mirzapur</option>
+            <option>Moradabad</option><option>Muzaffarnagar</option><option>Pilibhit</option>
+            <option>Pratapgarh</option><option>Raebareli</option><option>Rampur</option>
+            <option>Saharanpur</option><option>Sambhal</option><option>Sant Kabir Nagar</option>
+            <option>Shahjahanpur</option><option>Shamli</option><option>Shrawasti</option>
+            <option>Siddharthnagar</option><option>Sitapur</option><option>Sonbhadra</option>
+            <option>Sultanpur</option><option>Unnao</option><option>Varanasi</option>
+          </select>
+        </div>
+
+        <div class="input-group mt-2">
+          <label data-i18n="search">Search</label>
+          <input type="text" id="searchBar" placeholder="Search village or provider..." data-i18n-ph="search_services_ph" oninput="filterListings()" />
+        </div>
+
+        <div class="alert-box alert-success mt-2" data-i18n="ploughing_desc_tip_html">
+          🌾 <strong>Ploughing Tip:</strong> Laser leveling (Computer Manjha) can reduce water usage by up to 20-30% and improve crop yield uniformity.
+        </div>
+      </div>
+
+      <!-- Listings Column -->
+      <div>
+        <div id="servicesContainer"><div class="spinner"></div></div>
+      </div>
+
+    </div>
+
+    <!-- Register Tab Layout -->
+    <div class="form-panel" id="panel-register">
+      <div class="panel-card">
+        <h3 style="color:var(--green-800);margin-bottom:20px;border-bottom: 2px solid var(--green-100);padding-bottom:10px;">
+          ➕ <span data-i18n="register_service_btn">Register My Ploughing Service</span>
+        </h3>
+        
+        <div id="authCta" style="display:none;text-align:center;padding:30px;">
+          <h4 style="color:var(--neutral-600);margin-bottom:16px;" data-i18n="Only registered members of Kishan Sathi can start discussions or write comments.">Only registered members can register a tractor/ploughing service.</h4>
+          <a href="login.html" class="btn btn-primary" style="display:inline-block;width:auto;" data-i18n="🔑 Login to Participate">🔑 Login to Participate</a>
+        </div>
+
+        <form id="listingForm" onsubmit="submitListing(event)">
+          <div class="error-box" id="registerError"></div>
+          <div class="success-box" id="registerSuccess"></div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="your_name">Your Name *</label>
+              <input type="text" id="regName" required />
+            </div>
+            <div class="input-group">
+              <label data-i18n="phone_number">Phone Number *</label>
+              <input type="tel" id="regPhone" placeholder="10-digit mobile number" data-i18n-ph="store_phone_placeholder" required />
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="district">District *</label>
+              <select id="regDistrict" required>
+                <option value="">— Select —</option>
+                <option>Agra</option><option>Aligarh</option><option>Allahabad</option>
+                <option>Ambedkar Nagar</option><option>Amethi</option><option>Amroha</option>
+                <option>Auraiya</option><option>Azamgarh</option><option>Baghpat</option>
+                <option>Bahraich</option><option>Ballia</option><option>Balrampur</option>
+                <option>Banda</option><option>Barabanki</option><option>Bareilly</option>
+                <option>Basti</option><option>Bhadohi</option><option>Bijnor</option>
+                <option>Budaun</option><option>Bulandshahr</option><option>Chandauli</option>
+                <option>Chitrakoot</option><option>Deoria</option><option>Etah</option>
+                <option>Etawah</option><option>Faizabad</option><option>Farrukhabad</option>
+                <option>Fatehpur</option><option>Firozabad</option><option>Gautam Buddha Nagar</option>
+                <option>Ghaziabad</option><option>Ghazipur</option><option>Gonda</option>
+                <option>Gorakhpur</option><option>Hamirpur</option><option>Hapur</option>
+                <option>Hardoi</option><option>Hathras</option><option>Jalaun</option>
+                <option>Jaunpur</option><option>Jhansi</option><option>Kannauj</option>
+                <option>Kanpur Dehat</option><option>Kanpur Nagar</option><option>Kasganj</option>
+                <option>Kaushambi</option><option>Kheri</option><option>Kushinagar</option>
+                <option>Lalitpur</option><option>Lucknow</option><option>Maharajganj</option>
+                <option>Mahoba</option><option>Mainpuri</option><option>Mathura</option>
+                <option>Mau</option><option>Meerut</option><option>Mirzapur</option>
+                <option>Moradabad</option><option>Muzaffarnagar</option><option>Pilibhit</option>
+                <option>Pratapgarh</option><option>Raebareli</option><option>Rampur</option>
+                <option>Saharanpur</option><option>Sambhal</option><option>Sant Kabir Nagar</option>
+                <option>Shahjahanpur</option><option>Shamli</option><option>Shrawasti</option>
+                <option>Siddharthnagar</option><option>Sitapur</option><option>Sonbhadra</option>
+                <option>Sultanpur</option><option>Unnao</option><option>Varanasi</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label data-i18n="village_lbl">Village / Local Area *</label>
+              <input type="text" id="regVillage" placeholder="Enter village or area name" data-i18n-ph="village_placeholder" required />
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-bottom:18px;">
+            <label data-i18n="tractor_model_lbl">Tractor Model / Details (optional)</label>
+            <input type="text" id="regTractor" placeholder="e.g. Mahindra 575, John Deere" data-i18n-ph="tractor_model_placeholder" />
+          </div>
+
+          <div class="input-group" style="margin-bottom:18px;">
+            <label style="margin-bottom:10px;display:block;" data-i18n="equipment_offered">Equipment Offered *</label>
+            <div class="equip-grid">
+              <label class="checkbox-wrap">
+                <input type="checkbox" name="equipment" value="Harrow" onchange="toggleRateInputs()" />
+                <span data-i18n="harrow">Harrow</span>
+              </label>
+              <label class="checkbox-wrap">
+                <input type="checkbox" name="equipment" value="Tiller" onchange="toggleRateInputs()" />
+                <span data-i18n="tiller">Tiller / Trill</span>
+              </label>
+              <label class="checkbox-wrap">
+                <input type="checkbox" name="equipment" value="Computer Manjha" onchange="toggleRateInputs()" />
+                <span data-i18n="comp_manjha">Computer Manjha (Laser Leveler)</span>
+              </label>
+              <label class="checkbox-wrap">
+                <input type="checkbox" name="equipment" value="Rotavator" onchange="toggleRateInputs()" />
+                <span data-i18n="rotavator">Rotavator</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Dynamic Rates Container -->
+          <div id="ratesInputsContainer" style="display:none; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:20px;">
+          </div>
+
+          <button class="btn btn-primary" type="submit" id="submitBtn">
+            💾 <span data-i18n="save">Save</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- My Listings Tab Layout -->
+    <div class="my-panel" id="panel-my">
+      <div class="panel-card">
+        <h3 style="color:var(--green-800);margin-bottom:20px;border-bottom: 2px solid var(--green-100);padding-bottom:10px;">
+          📋 <span data-i18n="my_listings">My Listings</span>
+        </h3>
+        <div id="myContainer"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    let allServices = [];
+
+    // Switch between page panels
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+
+      document.getElementById('panel-browse').style.display = (tab === 'browse') ? 'grid' : 'none';
+      document.getElementById('panel-register').style.display = (tab === 'register') ? 'block' : 'none';
+      document.getElementById('panel-my').style.display = (tab === 'my') ? 'block' : 'none';
+
+      if (tab === 'browse') loadServices();
+      else if (tab === 'register') checkAuthForForm();
+      else if (tab === 'my') loadMyServices();
+    }
+
+    function checkAuthForForm() {
+      const loggedIn = typeof Auth !== 'undefined' && Auth.isLoggedIn();
+      const form = document.getElementById('listingForm');
+      const cta = document.getElementById('authCta');
+      if (loggedIn) {
+        form.style.display = 'block';
+        cta.style.display = 'none';
+        
+        // Auto-populate user data if present
+        const u = Auth.getUser();
+        if (u) {
+          if (u.name && !document.getElementById('regName').value) {
+            document.getElementById('regName').value = u.name;
+          }
+          if (u.phone && !document.getElementById('regPhone').value) {
+            document.getElementById('regPhone').value = u.phone;
+          }
+          if (u.district && !document.getElementById('regDistrict').value) {
+            document.getElementById('regDistrict').value = u.district;
+          }
+        }
+      } else {
+        form.style.display = 'none';
+        cta.style.display = 'block';
+      }
+    }
+
+    // Load listings from API
+    async function loadServices() {
+      const container = document.getElementById('servicesContainer');
+      const district = document.getElementById('filterDistrict').value;
+      try {
+        const res = await KisanAPI.ploughing.getAll(district);
+        allServices = res.services || [];
+        filterListings();
+      } catch(e) {
+        console.error(e);
+        container.innerHTML = `<p class="text-muted" style="text-align:center;">Could not load services.</p>`;
+      }
+    }
+
+    // Client-side text filter on listings
+    function filterListings() {
+      const container = document.getElementById('servicesContainer');
+      const search = document.getElementById('searchBar').value.toLowerCase().trim();
+
+      let filtered = allServices;
+      if (search) {
+        filtered = allServices.filter(s => 
+          s.providerName.toLowerCase().includes(search) || 
+          s.village.toLowerCase().includes(search) || 
+          (s.tractorDetails && s.tractorDetails.toLowerCase().includes(search))
+        );
+      }
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🚜</div>
+            <p data-i18n="no_services_found">No ploughing services listed in this area yet.</p>
+          </div>
+        `;
+        if (typeof Lang !== 'undefined') Lang.apply(Lang.getCurrent());
+        return;
+      }
+
+      container.innerHTML = filtered.map(s => {
+        const currentLang = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en';
+        const locale = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+        let eqTags = '';
+        if (s.rates) {
+          const ratesObj = s.rates instanceof Map ? Object.fromEntries(s.rates) : s.rates;
+          eqTags = Object.entries(ratesObj).map(([eq, r]) => {
+            return `<span class="equip-tag">${Lang.t(eq)}: ₹${r.toLocaleString(locale)} / ${Lang.t('bighas')}</span>`;
+          }).join('');
+        } else {
+          eqTags = s.equipment.map(eq => `<span class="equip-tag">${Lang.t(eq)}</span>`).join('');
+        }
+        const tractor = s.tractorDetails ? ` • ${s.tractorDetails}` : '';
+        const startingText = typeof Lang !== 'undefined' ? Lang.t('starting_from') : 'Starting from';
+        return `
+          <div class="service-card">
+            <div class="service-header">
+              <div>
+                <div class="service-title">${s.providerName}${tractor}</div>
+                <div class="service-village">📍 ${s.village}, ${Lang.t(s.district)}</div>
+              </div>
+              <div class="service-rate" style="font-size: 1.05rem;">
+                <span style="font-size:0.75rem;font-weight:600;display:block;color:var(--neutral-500);text-align:right;">${startingText}</span>
+                ₹${s.rate.toLocaleString(locale)} <span style="font-size:0.8rem;font-weight:600;">/ ${Lang.t('bighas')}</span>
+              </div>
+            </div>
+            <div class="service-equipments">
+              ${eqTags}
+            </div>
+            <div class="service-meta">
+              <div class="provider-info">👤 ${Lang.t('role_farmer')} • 📞 <strong>${s.phone}</strong></div>
+              <a href="tel:${s.phone}" class="btn btn-secondary btn-sm" style="display:inline-flex;width:auto;padding:6px 12px;gap:4px;font-size:0.85rem;">
+                ${Lang.t('call_provider')}
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      if (typeof Lang !== 'undefined') Lang.apply(Lang.getCurrent());
+    }
+
+    // Submit Listing registration Form
+    async function submitListing(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('registerError');
+      const succBox = document.getElementById('registerSuccess');
+      errBox.style.display = succBox.style.display = 'none';
+
+      const providerName = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const district = document.getElementById('regDistrict').value;
+      const village = document.getElementById('regVillage').value.trim();
+      const tractorDetails = document.getElementById('regTractor').value.trim();
+
+      const checkedBoxes = document.querySelectorAll('input[name="equipment"]:checked');
+      if (!checkedBoxes.length) {
+        errBox.textContent = Lang.t('please_select_equipment');
+        errBox.style.display = 'block';
+        return;
+      }
+
+      const rates = {};
+      let missingRate = false;
+      checkedBoxes.forEach(cb => {
+        const val = cb.value;
+        const input = document.getElementById(`rate-input-${val}`);
+        if (input && input.value) {
+          rates[val] = parseFloat(input.value);
+        } else {
+          missingRate = true;
+        }
+      });
+
+      if (missingRate) {
+        errBox.textContent = typeof Lang !== 'undefined' && Lang.getCurrent() === 'hi' 
+          ? "कृपया सभी चयनित उपकरणों के लिए दरें भरें।" 
+          : "Please fill in the rates for all selected equipment.";
+        errBox.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = Lang.t('saving');
+
+      try {
+        await KisanAPI.ploughing.create({ providerName, phone, district, village, rates, tractorDetails });
+        succBox.textContent = Lang.t('listing_added_success');
+        succBox.style.display = 'block';
+        document.getElementById('listingForm').reset();
+        document.getElementById('ratesInputsContainer').innerHTML = '';
+        document.getElementById('ratesInputsContainer').style.display = 'none';
+        setTimeout(() => {
+          switchTab('browse');
+        }, 1500);
+      } catch(err) {
+        errBox.textContent = err.message || 'Error saving listing';
+        errBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `💾 <span data-i18n="save">${Lang.t('save')}</span>`;
+      }
+    }
+
+    // Load current user's listings
+    async function loadMyServices() {
+      const container = document.getElementById('myContainer');
+      const loggedIn = typeof Auth !== 'undefined' && Auth.isLoggedIn();
+      if (!loggedIn) {
+        container.innerHTML = `<p class="text-muted" style="text-align:center;">Please login to view your listings.</p>`;
+        return;
+      }
+
+      try {
+        const u = Auth.getUser();
+        const res = await KisanAPI.ploughing.getAll();
+        const myServices = (res.services || []).filter(s => s.userId === u.id || (s.userId && s.userId._id === u.id) || (s.userId && String(s.userId) === String(u.id)));
+
+        if (!myServices.length) {
+          container.innerHTML = `<p class="text-muted" style="text-align:center;padding:20px;">No listings created yet.</p>`;
+          return;
+        }
+
+        container.innerHTML = myServices.map(s => {
+          const currentLang = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en';
+          const locale = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+          let eqTags = '';
+          if (s.rates) {
+            const ratesObj = s.rates instanceof Map ? Object.fromEntries(s.rates) : s.rates;
+            eqTags = Object.entries(ratesObj).map(([eq, r]) => {
+              return `<span class="equip-tag">${Lang.t(eq)}: ₹${r.toLocaleString(locale)} / ${Lang.t('bighas')}</span>`;
+            }).join('');
+          } else {
+            eqTags = s.equipment.map(eq => `<span class="equip-tag">${Lang.t(eq)}</span>`).join('');
+          }
+          const tractor = s.tractorDetails ? ` • ${s.tractorDetails}` : '';
+          const startingText = typeof Lang !== 'undefined' ? Lang.t('starting_from') : 'Starting from';
+          const sId = s._id || s.id;
+          return `
+            <div class="service-card" style="border-left-color:var(--gold-400);">
+              <div class="service-header">
+                <div>
+                  <div class="service-title">${s.providerName}${tractor}</div>
+                  <div class="service-village">📍 ${s.village}, ${Lang.t(s.district)}</div>
+                </div>
+                <div class="service-rate" style="font-size: 1.05rem;">
+                  <span style="font-size:0.75rem;font-weight:600;display:block;color:var(--neutral-500);text-align:right;">${startingText}</span>
+                  ₹${s.rate.toLocaleString(locale)} <span style="font-size:0.8rem;font-weight:600;">/ ${Lang.t('bighas')}</span>
+                </div>
+              </div>
+              <div class="service-equipments">
+                ${eqTags}
+              </div>
+              <div class="service-meta">
+                <div class="provider-info">👤 ${Lang.t('role_farmer')} • 📞 <strong>${s.phone}</strong></div>
+                <button class="btn btn-secondary btn-sm text-red" onclick="deleteListing('${sId}')" style="display:inline-flex;width:auto;padding:6px 12px;gap:4px;font-size:0.85rem;border-color:var(--red-500);color:var(--red-500);background:var(--red-50);">
+                  🗑️ ${Lang.t('delete')}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        if (typeof Lang !== 'undefined') Lang.apply(Lang.getCurrent());
+      } catch(e) {
+        console.error(e);
+        container.innerHTML = `<p class="text-muted" style="text-align:center;">Could not load listings.</p>`;
+      }
+    }
+
+    async function deleteListing(id) {
+      if (!confirm(Lang.t('confirm_delete_listing'))) return;
+      try {
+        await KisanAPI.ploughing.delete(id);
+        loadMyServices();
+      } catch(e) {
+        alert('Error deleting: ' + e.message);
+      }
+    }
+
+    // Dynamic rate inputs helper
+    function toggleRateInputs() {
+      const container = document.getElementById('ratesInputsContainer');
+      const checkedBoxes = document.querySelectorAll('input[name="equipment"]:checked');
+      
+      const currentValues = {};
+      container.querySelectorAll('input').forEach(input => {
+        const eq = input.id.replace('rate-input-', '');
+        currentValues[eq] = input.value;
+      });
+
+      if (checkedBoxes.length === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+      }
+      
+      container.style.display = 'grid';
+      container.innerHTML = Array.from(checkedBoxes).map(cb => {
+        const val = cb.value;
+        const savedVal = currentValues[val] || '';
+        const displayLabel = typeof Lang !== 'undefined' ? Lang.t(val) : val;
+        const rateLabelText = typeof Lang !== 'undefined' && Lang.getCurrent() === 'hi' 
+          ? `${displayLabel} की दर (₹/बीघा) *` 
+          : `Rate for ${displayLabel} (₹/bigha) *`;
+        
+        return `
+          <div class="input-group">
+            <label style="font-weight:600;">${rateLabelText}</label>
+            <input type="number" id="rate-input-${val}" min="1" required value="${savedVal}" placeholder="e.g. 200" />
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Dynamic Select Option translates
+    function translateDistrictSelects() {
+      const filterSelect = document.getElementById('filterDistrict');
+      const regSelect = document.getElementById('regDistrict');
+      
+      [filterSelect, regSelect].forEach(select => {
+        if (!select) return;
+        const first = select.options[0];
+        if (first) {
+          first.textContent = Lang.t('select_district_prompt') || first.textContent;
+        }
+        for (let i = 1; i < select.options.length; i++) {
+          const opt = select.options[i];
+          opt.textContent = Lang.t(opt.value || opt.textContent);
+        }
+      });
+    }
+
+    // Init
+    document.addEventListener("DOMContentLoaded", () => {
+      loadServices();
+      translateDistrictSelects();
+      if (typeof Auth !== 'undefined') Auth.updateNav();
+    });
+  </script>
+</body>
+</html>

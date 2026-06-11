@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Area Store Locator | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .page-tabs { display:flex; gap:0; background:var(--white); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:28px; }
+    .tab-btn { flex:1; padding:14px; border:none; background:none; font-weight:600; font-size:.95rem; cursor:pointer; border-bottom:3px solid transparent; transition:var(--transition); font-family:var(--font-body); color:var(--neutral-500); }
+    .tab-btn.active { border-bottom-color:var(--green-500); color:var(--green-700); background:var(--green-50); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    #map { height:500px; border-radius:12px; box-shadow:var(--shadow-md); z-index:0; }
+    .map-legend {
+      display:flex; gap:16px; flex-wrap:wrap;
+      background:var(--white); border-radius:var(--radius-lg);
+      padding:14px 18px; box-shadow:var(--shadow-sm);
+      margin-bottom:16px; align-items:center;
+    }
+    .legend-item { display:flex; align-items:center; gap:8px; font-size:.88rem; font-weight:600; }
+    .legend-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+
+    .form-card { max-width:600px; margin:0 auto; background:var(--white); border-radius:var(--radius-xl); box-shadow:var(--shadow-md); padding:32px; }
+    .preview-card { max-width:600px; margin:24px auto 0; background:var(--white); border-radius:var(--radius-xl); box-shadow:var(--shadow-sm); padding:24px; display:none; border:2px solid var(--green-300,#80c99e); }
+    .preview-img { width:100%; height:200px; object-fit:cover; border-radius:var(--radius-md); margin-bottom:14px; }
+    .preview-name { font-size:1.2rem; font-weight:700; color:var(--green-700); }
+    .preview-field { display:flex; gap:8px; margin-top:8px; font-size:.95rem; }
+    .preview-field .pf-icon { font-size:1.2rem; }
+    .upload-zone { border:2px dashed var(--neutral-300,#b0bdb4); border-radius:var(--radius-md); padding:28px; text-align:center; cursor:pointer; transition:var(--transition); background:var(--neutral-50); }
+    .upload-zone:hover { border-color:var(--green-400); background:var(--green-50); }
+    .upload-zone input[type="file"] { display:none; }
+    .upload-zone .uz-icon { font-size:2rem; margin-bottom:8px; }
+    .upload-zone p { color:var(--neutral-400); font-size:.9rem; }
+    .stored-stores { max-width:600px; margin:24px auto 0; }
+    .stored-card { background:var(--white); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:16px; margin-bottom:12px; display:flex; gap:14px; align-items:center; border:1.5px solid var(--neutral-200); }
+    .stored-card img { width:70px; height:60px; object-fit:cover; border-radius:var(--radius-sm); }
+    .stored-card .sc-body { flex:1; }
+    .stored-card .sc-name { font-weight:700; color:var(--green-700); }
+    .stored-card .sc-meta { font-size:.83rem; color:var(--neutral-400); margin-top:3px; }
+    .delete-btn { background:none; border:none; cursor:pointer; color:var(--red-500); font-size:1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-600) 100%);">
+    <h1>🗺️ <span data-i18n="store_locator_title">Agri Store & Resource Locator</span></h1>
+    <p data-i18n="store_locator_sub">Find Cold Storages, KVKs and local agri stores — or add your own</p>
+  </div>
+
+  <div class="container section">
+    <div class="page-tabs">
+      <button class="tab-btn active" onclick="switchTab('map')" data-i18n="map_locator">🗺️ Map Locator</button>
+      <button class="tab-btn" onclick="switchTab('add')" data-i18n="add_my_store">➕ Add My Store</button>
+      <button class="tab-btn" onclick="switchTab('saved')" data-i18n="saved_stores">🗂️ Saved Stores</button>
+    </div>
+
+    <div id="tab-map" class="tab-panel active">
+      <div class="map-legend">
+        <span style="font-weight:700;color:var(--green-800);" data-i18n="map_legend">Map Legend:</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#2e8b57;"></span> <span data-i18n="retail_agri_store">Retail Agri Store</span></span>
+        <span class="legend-item"><span class="legend-dot" style="background:#1565c0;"></span> <span data-i18n="kvk">Krishi Vigyan Kendra (KVK)</span></span>
+        <span class="legend-item"><span class="legend-dot" style="background:#b71c1c;"></span> <span data-i18n="cold_storage">Cold Storage</span></span>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <div id="tab-add" class="tab-panel">
+      <div class="form-card">
+        <h3 class="text-green mb-3" data-i18n="store_info">📋 Store Information</h3>
+        <div class="input-group">
+          <label data-i18n="store_name_lbl">Store Name *</label>
+          <input type="text" id="storeName" placeholder="e.g. Ram Kishan Beej Bhandar" data-i18n-ph="store_name_lbl" />
+        </div>
+        <div class="input-group">
+          <label data-i18n="store_image_lbl">Store Image</label>
+          <div class="upload-zone" onclick="document.getElementById('storeImageInput').click()">
+            <input type="file" id="storeImageInput" accept="image/*" onchange="previewImage(this)" />
+            <div class="uz-icon">📷</div>
+            <p data-i18n="click_to_upload">Click to upload store photo (JPG, PNG)</p>
+            <p id="imageFileName" class="text-green" style="font-size:.85rem;margin-top:4px;"></p>
+          </div>
+        </div>
+        <div class="input-group">
+          <label data-i18n="store_address_lbl">Store Address *</label>
+          <textarea id="storeAddress" rows="3" placeholder="Mohalla / Village, Tehsil, District, PIN Code" data-i18n-ph="store_address_placeholder"></textarea>
+        </div>
+        <div class="input-group">
+          <label data-i18n="store_phone_lbl">Phone Number *</label>
+          <input type="tel" id="storePhone" placeholder="10-digit mobile number" data-i18n-ph="store_phone_placeholder" maxlength="10" />
+        </div>
+        <div class="input-group">
+          <label data-i18n="store_category_lbl">Category</label>
+          <select id="storeCategory">
+            <option value="Seeds & Fertilizers" data-i18n="seeds_fertilizers_opt">🌱 Seeds &amp; Fertilizers</option>
+            <option value="Full Service Agri Store" data-i18n="full_service_opt">🏪 Full Service Agri Store</option>
+            <option value="Pesticides & Chemicals" data-i18n="pesticides_chemicals_opt">🧪 Pesticides &amp; Chemicals</option>
+            <option value="Agri Equipment" data-i18n="agri_equipment_opt">🔧 Agri Equipment</option>
+            <option value="Agri Clinic" data-i18n="agri_clinic_opt">🩺 Agri Clinic</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label data-i18n="store_map_link_lbl">Google Maps Link (optional)</label>
+          <input type="url" id="storeMapLink" placeholder="https://maps.google.com/…" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="saveStore()" data-i18n="save_store_btn">💾 Save Store Info</button>
+      </div>
+      <div class="preview-card" id="previewCard">
+        <div class="text-green" style="font-weight:700;margin-bottom:12px;font-size:1.1rem;" data-i18n="preview_how_looks">✅ Preview — How it looks</div>
+        <img id="previewImg" class="preview-img" src="" alt="Store Preview" style="display:none;" />
+        <div class="preview-name" id="previewName"></div>
+        <div class="preview-field"><span class="pf-icon">📍</span><span id="previewAddress"></span></div>
+        <div class="preview-field"><span class="pf-icon">📞</span><span id="previewPhone"></span></div>
+        <div class="preview-field"><span class="pf-icon">🏷️</span><span id="previewCategory"></span></div>
+      </div>
+    </div>
+
+    <div id="tab-saved" class="tab-panel">
+      <div class="stored-stores">
+        <h3 class="text-green mb-2" data-i18n="saved_stores">🗂️ Saved Stores</h3>
+        <div id="storedStoresList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    function switchTab(name) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      event.currentTarget.classList.add('active');
+      if (name === 'map') setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    const mapData = [
+      { lat: 26.8467, lng: 80.9462, name: 'KVK Lucknow', type: 'kvk',   phone: '0522-2740238', address: 'CISH Campus, Rehmankhera, Lucknow' },
+      { lat: 27.1767, lng: 78.0081, name: 'KVK Agra',    type: 'kvk',   phone: '0562-2520071', address: 'Near Agra Bypass, Farah, Mathura' },
+      { lat: 25.3176, lng: 82.9739, name: 'KVK Varanasi', type: 'kvk',  phone: '0542-2575085', address: 'Rajatalab, Varanasi' },
+      { lat: 26.9124, lng: 75.7873, name: 'Govt Cold Storage — Kanpur',  type: 'cold', phone: '0512-2212345', address: 'Nawabganj, Kanpur Nagar' },
+      { lat: 28.3670, lng: 79.4304, name: 'Govt Cold Storage — Bareilly', type: 'cold', phone: '0581-2510234', address: 'Civil Lines, Bareilly' },
+      { lat: 25.5941, lng: 85.1376, name: 'Govt Cold Storage — Gorakhpur', type: 'cold', phone: '0551-2330156', address: 'Golghar Road, Gorakhpur' },
+      { lat: 26.4499, lng: 80.3319, name: 'Adarsh Beej Bhandar', type: 'retail', phone: '9876543210', address: 'Kannauj, Uttar Pradesh' },
+      { lat: 27.5706, lng: 80.6982, name: 'Kisan Seva Agri Store', type: 'retail', phone: '9988776655', address: 'Sitapur, Uttar Pradesh' },
+      { lat: 25.9442, lng: 81.6963, name: 'Green Field Agri Centre', type: 'retail', phone: '9011223344', address: 'Raebareli, Uttar Pradesh' },
+    ];
+
+    const colors = { kvk: '#1565c0', cold: '#b71c1c', retail: '#2e8b57' };
+    const typeLabel = {
+      kvk: typeof Lang !== 'undefined' ? Lang.t('kvk') : 'Krishi Vigyan Kendra',
+      cold: typeof Lang !== 'undefined' ? Lang.t('cold_storage') : 'Cold Storage',
+      retail: typeof Lang !== 'undefined' ? Lang.t('retail_agri_store') : 'Retail Agri Store'
+    };
+
+    function makeIcon(type) {
+      return L.divIcon({
+        className: '',
+        html: `<div style="width:20px;height:20px;border-radius:50%;background:${colors[type]};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -12],
+      });
+    }
+
+    const map = L.map('map').setView([26.8467, 80.9462], 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(map);
+
+    mapData.forEach(loc => {
+      L.marker([loc.lat, loc.lng], { icon: makeIcon(loc.type) })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width:200px;font-family:sans-serif;">
+            <strong style="font-size:1rem;color:${colors[loc.type]};">${loc.name}</strong><br>
+            <span style="background:${colors[loc.type]};color:#fff;padding:2px 8px;border-radius:99px;font-size:.75rem;font-weight:600;">${typeLabel[loc.type]}</span>
+            <div style="margin-top:8px;font-size:.88rem;">
+              <div>📍 ${loc.address}</div>
+              <div style="margin-top:4px;">📞 <a href="tel:${loc.phone}">${loc.phone}</a></div>
+            </div>
+          </div>
+        `);
+    });
+
+    let previewDataURL = '';
+
+    function previewImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+      document.getElementById('imageFileName').textContent = '✅ ' + file.name;
+      const reader = new FileReader();
+      reader.onload = e => { previewDataURL = e.target.result; };
+      reader.readAsDataURL(file);
+    }
+
+    function saveStore() {
+      const name     = document.getElementById('storeName').value.trim();
+      const address  = document.getElementById('storeAddress').value.trim();
+      const phone    = document.getElementById('storePhone').value.trim();
+      const category = document.getElementById('storeCategory').value;
+      const mapLink  = document.getElementById('storeMapLink').value.trim();
+
+      if (!name || !address || !phone) {
+        alert(typeof Lang !== 'undefined' ? Lang.t('store_fill_alert') : 'Please fill in Name, Address, and Phone Number.');
+        return;
+      }
+      if (!/^\d{10}$/.test(phone)) {
+        alert(typeof Lang !== 'undefined' ? Lang.t('store_phone_alert') : 'Please enter a valid 10-digit phone number.');
+        return;
+      }
+
+      const entry = { id: Date.now(), name, address, phone, category, mapLink, image: previewDataURL };
+      const stores = JSON.parse(localStorage.getItem('ks_local_stores') || '[]');
+      stores.unshift(entry);
+      localStorage.setItem('ks_local_stores', JSON.stringify(stores));
+
+      document.getElementById('previewName').textContent     = name;
+      document.getElementById('previewAddress').textContent  = address;
+      document.getElementById('previewPhone').textContent    = phone;
+      document.getElementById('previewCategory').textContent = typeof Lang !== 'undefined' ? Lang.t(category) : category;
+      if (previewDataURL) {
+        const pi = document.getElementById('previewImg');
+        pi.src = previewDataURL; pi.style.display = 'block';
+      }
+      document.getElementById('previewCard').style.display = 'block';
+
+      document.getElementById('storeName').value    = '';
+      document.getElementById('storeAddress').value = '';
+      document.getElementById('storePhone').value   = '';
+      document.getElementById('storeMapLink').value = '';
+      document.getElementById('imageFileName').textContent = '';
+      previewDataURL = '';
+
+      renderStores();
+      if (typeof Auth !== 'undefined') Auth.updateNav();
+    }
+
+    function deleteStore(id) {
+      if (!confirm(typeof Lang !== 'undefined' ? Lang.t('store_remove_confirm') : 'Remove this store?')) return;
+      let stores = JSON.parse(localStorage.getItem('ks_local_stores') || '[]');
+      stores = stores.filter(s => s.id !== id);
+      localStorage.setItem('ks_local_stores', JSON.stringify(stores));
+      renderStores();
+    }
+
+    function renderStores() {
+      const stores = JSON.parse(localStorage.getItem('ks_local_stores') || '[]');
+      const el = document.getElementById('storedStoresList');
+      if (!stores.length) {
+        el.innerHTML = `<p class="text-muted" style="text-align:center;padding:20px;">${typeof Lang !== 'undefined' ? Lang.t('no_stores_saved') : 'No stores saved yet. Add yours above!'}</p>`;
+        return;
+      }
+      const mapLinkWord = typeof Lang !== 'undefined' ? Lang.t('view_on_map') : '📍 View on Map';
+      el.innerHTML = stores.map(s => {
+        const translatedCat = typeof Lang !== 'undefined' ? Lang.t(s.category) : s.category;
+        return `
+          <div class="stored-card">
+            <img src="${s.image || 'https://placehold.co/70x60/2e8b57/white?text=Store'}" alt="${s.name}" onerror="this.src='https://placehold.co/70x60/2e8b57/white?text=Store'" />
+            <div class="sc-body">
+              <div class="sc-name">${s.name}</div>
+              <div class="sc-meta">📍 ${s.address.substring(0, 60)}${s.address.length > 60 ? '…' : ''}</div>
+              <div class="sc-meta">📞 ${s.phone} &nbsp;|&nbsp; 🏷️ ${translatedCat}</div>
+              ${s.mapLink ? `<a href="${s.mapLink}" target="_blank" style="font-size:.82rem;color:var(--sky-500);">${mapLinkWord}</a>` : ''}
+            </div>
+            <button class="delete-btn" onclick="deleteStore(${s.id})" title="Remove">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderStores();
+    if (typeof Auth !== 'undefined') Auth.updateNav();
+  </script>
+</body>
+</html>

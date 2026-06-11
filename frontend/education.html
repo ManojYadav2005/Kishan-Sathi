@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Education Hub | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .filter-row {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm); padding: 20px 24px;
+      display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+      margin-bottom: 28px; border: 1px solid var(--neutral-100);
+    }
+    .filter-row .input-group { flex:1; min-width:180px; margin:0; }
+
+    .edu-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      overflow: hidden; box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-100); transition: var(--transition);
+      cursor:pointer;
+    }
+    .edu-card:hover { box-shadow: var(--shadow-lg); transform:translateY(-5px); border-color:var(--green-200); }
+    .edu-card img { width:100%; height:180px; object-fit:cover; transition: transform .4s ease; }
+    .edu-card:hover img { transform: scale(1.05); }
+    .edu-card-body { padding:18px; }
+    .edu-card-name { font-weight:700; color:var(--green-700); margin-bottom:6px; font-size:1.08rem; font-family: var(--font-display); }
+    .edu-card-sow   { font-size:.83rem; color:var(--neutral-400); margin-bottom:10px; }
+    .edu-card-meta  { display:flex; gap:8px; flex-wrap:wrap; }
+
+    /* Detail Modal */
+    .edu-modal {
+      position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center; padding:16px;
+      backdrop-filter: blur(4px);
+    }
+    .edu-modal-inner {
+      background:var(--white); border-radius:var(--radius-2xl);
+      width:100%; max-width:580px; max-height:88vh; overflow-y:auto;
+      box-shadow:var(--shadow-xl); animation: fadeInUp .3s ease;
+    }
+    .edu-modal-header {
+      position:sticky; top:0; background:linear-gradient(135deg, var(--green-800), var(--green-700)); color:white;
+      padding:20px 24px; display:flex; justify-content:space-between; align-items:center;
+      border-radius:var(--radius-2xl) var(--radius-2xl) 0 0;
+    }
+    .edu-modal-header h3 { color:white; font-size:1.2rem; font-family: var(--font-display); }
+    .edu-modal-close { background:rgba(255,255,255,.12); border:none; color:white; font-size:1.3rem; cursor:pointer; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: var(--transition-fast); }
+    .edu-modal-close:hover { background:rgba(255,255,255,.25); }
+    .edu-modal-body { padding:24px; }
+    .detail-row { display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--neutral-100); }
+    .detail-row:last-child { border:none; }
+    .detail-icon { width:38px; height:38px; background:var(--green-50); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; border: 1px solid var(--green-100); }
+    .detail-label { font-weight:600; color:var(--neutral-600); font-size:.83rem; }
+    .detail-value { color:var(--neutral-800); font-size:.93rem; }
+
+    /* Videos */
+    .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:22px; }
+    .video-card { border-radius:var(--radius-xl); overflow:hidden; box-shadow:var(--shadow-md); transition: var(--transition); }
+    .video-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+    .video-card iframe { width:100%; height:190px; border:none; display:block; }
+
+    /* Schemes */
+    .scheme-list-item {
+      display:flex; align-items:center; gap:16px; padding:16px 20px;
+      background:var(--white); border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-sm); margin-bottom:12px;
+      border-left:3px solid var(--green-400);
+      text-decoration:none; color:inherit; transition:var(--transition);
+      border: 1px solid var(--neutral-100); border-left:3px solid var(--green-400);
+    }
+    .scheme-list-item:hover { box-shadow:var(--shadow-md); border-left-color:var(--gold-500); transform: translateX(4px); }
+    .scheme-list-item .sli-icon { font-size:1.9rem; }
+    .scheme-list-item .sli-name { font-weight:700; color:var(--green-700); font-family: var(--font-display); }
+    .scheme-list-item .sli-desc { font-size:.85rem; color:var(--neutral-400); margin-top:2px; }
+
+    /* Pagination */
+    .pagination { display:flex; gap:6px; justify-content:center; margin-top:28px; flex-wrap:wrap; }
+    .page-btn { min-width:40px; height:40px; border-radius:var(--radius-md); border:1.5px solid var(--neutral-200); background:var(--white); cursor:pointer; font-weight:600; font-size:.9rem; transition:var(--transition); font-family:var(--font-body); }
+    .page-btn:hover { border-color:var(--green-400); background:var(--green-50); transform: translateY(-1px); }
+    .page-btn.active { background:linear-gradient(135deg, var(--green-700), var(--green-500)); color:white; border-color:transparent; box-shadow: 0 4px 12px rgba(26,122,82,.25); }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-500) 100%);">
+    <h1>📚 <span data-i18n="edu_title">Education &amp; Crop Guide Hub</span></h1>
+    <p>Step-by-step guides for 24 crops, farming videos, and government schemes</p>
+  </div>
+
+  <div class="container section">
+
+    <!-- Crop Guides Section -->
+    <h2 class="text-green mb-2">🌾 Step-by-Step Crop Guides</h2>
+    <div class="filter-row">
+      <div class="input-group">
+        <label for="nameFilter">Search Crop</label>
+        <input type="text" id="nameFilter" placeholder="e.g. wheat, potato…" oninput="filterCrops()" />
+      </div>
+      <div class="input-group">
+        <label for="seasonFilter">Filter by Season</label>
+        <select id="seasonFilter" onchange="filterCrops()">
+          <option value="">All Seasons</option>
+          <option value="Kharif">🌧️ Kharif</option>
+          <option value="Rabi">❄️ Rabi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-auto" id="cropList"></div>
+    <div class="pagination" id="paginationControls"></div>
+
+    <!-- Crop Detail Modal -->
+    <div class="edu-modal" id="cropModal" style="display:none;" onclick="closeCropModal(event)">
+      <div class="edu-modal-inner">
+        <div class="edu-modal-header">
+          <h3 id="modalTitle">Crop Details</h3>
+          <button class="edu-modal-close" onclick="document.getElementById('cropModal').style.display='none'">✕</button>
+        </div>
+        <div class="edu-modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- Govt Schemes -->
+    <div class="section" style="padding-top:40px;">
+      <h2 class="text-green mb-2">🏛️ Government Schemes & Subsidies</h2>
+      <a href="https://pmkisan.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🌾</span>
+        <div><div class="sli-name">PM-Kisan Samman Nidhi</div><div class="sli-desc">₹6,000/year direct cash benefit to all eligible small & marginal farmers</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+      <a href="https://soilhealth.dac.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🧪</span>
+        <div><div class="sli-name">Soil Health Card Scheme</div><div class="sli-desc">Free soil testing to know nutrient status and optimize fertilizer usage</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+      <a href="https://www.enam.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🛒</span>
+        <div><div class="sli-name">eNAM – Online Agri Market</div><div class="sli-desc">Sell your produce directly at the best mandi price through unified digital platform</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+      <a href="https://pmfby.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🌧️</span>
+        <div><div class="sli-name">PM Fasal Bima Yojana</div><div class="sli-desc">Subsidized crop insurance for protection against weather, pest, and natural calamities</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+      <a href="https://pgsindia-ncof.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🌱</span>
+        <div><div class="sli-name">Paramparagat Krishi Vikas Yojana (PKVY)</div><div class="sli-desc">₹50,000/hectare support to transition to organic farming with certification</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+      <a href="https://agricoop.gov.in/" target="_blank" class="scheme-list-item">
+        <span class="sli-icon">🏛️</span>
+        <div><div class="sli-name">National Agriculture Market (NAM)</div><div class="sli-desc">Unified market platform to improve agri value chains</div></div>
+        <span style="margin-left:auto;font-size:1.2rem;color:var(--neutral-300);">→</span>
+      </a>
+    </div>
+
+    <!-- Videos Section -->
+    <div class="section" style="padding-top:40px;">
+      <h2 class="text-green mb-2">📺 Farming Tutorial Videos</h2>
+      <p class="text-muted mb-3">Curated Hindi-language farming tutorials covering seeds, fertilizers, pest control, and more</p>
+      <div class="video-grid">
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/6PxwFePEnNU" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/AF-jzWKMdwE" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/F4Az6C2rsic" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/lMkPcx6ijbg" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/Ulf8E1XnhgI" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/yrjVrFgoAfA" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/hDTwuO9PHp8" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/pxO-Cr3ouuQ" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/gpRFP4ZxnZs" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/o0Lwn0fSmqc" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/ECE_S2LMwBc" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/Pl1zFD7aAtI" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/0US13rBCa5I" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/Uo05345F1C8" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/PubKH1YDaZs" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/qwKc13R-bMc" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/EKNP488UswU" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+        <div class="video-card"><iframe src="https://www.youtube.com/embed/AC_zGbmuFz0" loading="lazy" allowfullscreen title="Farming Tutorial"></iframe></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const crops = [
+      { name:'Wheat',           sow:'Rabi (Nov–Dec)',    season:'Rabi',   fert:'Urea & DAP; 120 kg N per hectare',           pest:'Rust, aphids — use Mancozeb & Neem spray',          harvest:'Grains hard, moisture < 20%',               image:'./images/Wheat.jpg' },
+      { name:'Paddy (Rice)',    sow:'Kharif (Jun–Jul)',  season:'Kharif', fert:'Urea, Potash; standing water required',        pest:'Brown Plant Hopper — Chlorpyrifos spray',           harvest:'Golden-yellow panicle stage',               image:'./images/paddy.jpg' },
+      { name:'Maize',           sow:'Kharif & Rabi',     season:'Kharif', fert:'Urea, NPK; moderate watering',                pest:'Stem borers — Neem oil spray',                      harvest:'Cobs fully developed, silks dried',         image:'./images/maize.jpg' },
+      { name:'Sugarcane',       sow:'Feb–Mar & Sep–Oct', season:'Kharif', fert:'High NPK + micronutrients; 5–6 irrigations',  pest:'Borers, white grub — systemic insecticides',        harvest:'10–12 months after planting',               image:'./guide/sugarcane.jpg' },
+      { name:'Potato',          sow:'Rabi (Oct–Nov)',    season:'Rabi',   fert:'FYM + Urea; water every 10 days',              pest:'Late blight — Mancozeb/Metalaxyl spray',            harvest:'Tops die down, skin firm',                  image:'./images/Potato.jpg' },
+      { name:'Tomato',          sow:'Oct–Nov or Feb–Mar',season:'Rabi',   fert:'Organic + NPK; regular irrigation',            pest:'Leaf curl, fruit borer — neem + Spinosad',          harvest:'Red ripe fruits, firm',                     image:'./guide/tomato.jpg' },
+      { name:'Onion',           sow:'Nov–Dec',           season:'Rabi',   fert:'DAP, Potash, organic manure',                  pest:'Thrips, purple blotch — Imidacloprid',              harvest:'Neck bent stage',                           image:'./images/Onion.jpg' },
+      { name:'Garlic',          sow:'Oct–Nov',           season:'Rabi',   fert:'Phosphorus-rich manure + Urea',                pest:'Nematodes, rot fungi — soil treatment',             harvest:'Tops turn yellow and dry',                  image:'./guide/garlic.jpg' },
+      { name:'Mustard',         sow:'Rabi (Oct–Nov)',    season:'Rabi',   fert:'Low N, higher K; 1–2 irrigations',            pest:'Aphids, blight — Neem + Dimethoate',               harvest:'Pods yellow and dry',                       image:'./guide/Mustard.jpg' },
+      { name:'Barley',          sow:'Rabi (Nov)',        season:'Rabi',   fert:'Minimal NPK; 2–3 irrigations',                pest:'Rust, smut — Propiconazole spray',                  harvest:'Hard dough stage',                          image:'./guide/barley.jpg' },
+      { name:'Chickpea (Gram)', sow:'Rabi (Oct)',        season:'Rabi',   fert:'Phosphorus + Rhizobium inoculant',             pest:'Pod borer, wilt — Chlorpyrifos + Trichoderma',     harvest:'Pods turn brown and dry',                   image:'./guide/chickpea.jpg' },
+      { name:'Brinjal',         sow:'Summer & Kharif',   season:'Kharif', fert:'NPK + FYM; frequent irrigation',               pest:'Shoot borer, whiteflies — neem oil spray',          harvest:'Bright purple/green fruits, firm',          image:'./guide/brinjal.jpeg' },
+      { name:'Cauliflower',     sow:'Oct–Dec',           season:'Rabi',   fert:'Nitrogen + Boron supplementation',             pest:'Cabbage looper — NSKE spray',                       harvest:'Compact white curd before opening',         image:'./guide/Cauliflower.jpg' },
+      { name:'Lentil (Masoor)', sow:'Rabi (Nov)',        season:'Rabi',   fert:'Low N, high P; minimal irrigation',            pest:'Wilt, aphids — Thiram seed treatment',              harvest:'Pods dry, rattle on shaking',               image:'./guide/Lentil.jpg' },
+      { name:'Peas',            sow:'Rabi (Nov)',        season:'Rabi',   fert:'Organic + minimal Urea',                       pest:'Aphids, powdery mildew — Sulphur spray',            harvest:'Green pods fully mature',                   image:'./guide/peas.jpg' },
+      { name:'Ladyfinger (Bhindi)', sow:'Summer/Kharif', season:'Kharif', fert:'FYM + light NPK',                             pest:'Jassids, mites — Neem oil',                         harvest:'Tender pods 4–5 days after flowering',     image:'./guide/Ladyfinger.jpg' },
+      { name:'Bottle Gourd',    sow:'Feb–Mar',          season:'Kharif', fert:'Compost + NPK; drip irrigation',               pest:'Fruit fly, powdery mildew',                         harvest:'Soft tender gourds',                        image:'./guide/BottleGourd.jpg' },
+      { name:'Coriander',       sow:'Oct–Nov',          season:'Rabi',   fert:'Low NPK + organic manure',                     pest:'Aphids, wilt — Neem spray',                         harvest:'Leaves full grown, 25–30 days',             image:'./guide/Coriander.jpg' },
+      { name:'Sorghum (Jowar)', sow:'Kharif & Rabi',    season:'Kharif', fert:'Moderate NPK; 2–3 irrigations',               pest:'Shoot fly — seed treatment',                        harvest:'Hard dough stage',                          image:'./guide/Sorghum(Jowar).jpg' },
+      { name:'Soybean',         sow:'Kharif (Jun)',      season:'Kharif', fert:'Rhizobium + phosphorus',                       pest:'Leaf spot, pod borer — Chlorantraniliprole',         harvest:'Pods turn brown',                           image:'./guide/Soybean.jpg' },
+      { name:'Turmeric',        sow:'June–July',         season:'Kharif', fert:'Cow dung + Potash; mulching helps',            pest:'Rhizome rot — Trichoderma + Mancozeb',              harvest:'8–9 months — leaves yellow',               image:'./guide/Turmeric.jpg' },
+      { name:'Spinach',         sow:'Winter',            season:'Rabi',   fert:'FYM + phosphorus; regular irrigation',         pest:'Leaf spot, damping-off — Copper fungicide',          harvest:'Young green leaves, 30–45 days',           image:'./guide/Spinach.jpg' },
+      { name:'Fenugreek (Methi)',sow:'Rabi (Oct)',       season:'Rabi',   fert:'Organic manure; minimal synthetic',            pest:'Root rot — improve drainage',                       harvest:'25–30 days after sowing',                  image:'./guide/Fenugreek.jpg' },
+      { name:'Cabbage',         sow:'Winter',            season:'Rabi',   fert:'Urea + Potassium; frequent watering',          pest:'Diamondback moth — NSKE + Spinosad',                harvest:'Tight firm compact heads',                 image:'./guide/Cabbage.jpg' },
+    ];
+
+    let filtered = [...crops];
+    let currentPage = 1;
+    const perPage = 8;
+
+    function getSeason(crop) {
+      if (crop.sow.includes('Rabi')) return 'Rabi';
+      if (crop.sow.includes('Kharif') || crop.sow.includes('Summer')) return 'Kharif';
+      return '';
+    }
+
+    function filterCrops() {
+      const name   = document.getElementById('nameFilter').value.toLowerCase();
+      const season = document.getElementById('seasonFilter').value;
+      filtered = crops.filter(c => {
+        const matchName   = c.name.toLowerCase().includes(name);
+        const matchSeason = !season || getSeason(c) === season;
+        return matchName && matchSeason;
+      });
+      currentPage = 1;
+      renderCrops();
+    }
+
+    function renderCrops() {
+      const start = (currentPage - 1) * perPage;
+      const page  = filtered.slice(start, start + perPage);
+      const grid  = document.getElementById('cropList');
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div style="text-align:center;padding:50px;color:var(--neutral-400);grid-column:1/-1;"><div style="font-size:3rem;">🌾</div><p>No crops found. Try a different search.</p></div>`;
+        document.getElementById('paginationControls').innerHTML = '';
+        return;
+      }
+
+      grid.innerHTML = page.map(crop => {
+        const trName = typeof Lang !== 'undefined' ? Lang.t(crop.name) : crop.name;
+        const trSow = typeof Lang !== 'undefined' ? Lang.t(crop.sow) : crop.sow;
+        const trSeason = typeof Lang !== 'undefined' ? Lang.t(getSeason(crop) || 'Year-round') : (getSeason(crop) || 'Year-round');
+        const clickText = typeof Lang !== 'undefined' ? Lang.t('Click for full guide') : 'Click for full guide';
+
+        return `
+        <div class="edu-card" onclick="openCropModal(${crops.indexOf(crop)})">
+          <img src="${crop.image}" alt="${trName}" onerror="this.src='https://placehold.co/400x170/2e8b57/white?text=${encodeURIComponent(trName)}'" />
+          <div class="edu-card-body">
+            <div class="edu-card-name">${trName}</div>
+            <div class="edu-card-sow">🗓️ ${trSow}</div>
+            <div class="edu-card-meta">
+              <span class="badge badge-green">${trSeason}</span>
+              <span class="badge badge-earth">${clickText}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Pagination
+      const totalPages = Math.ceil(filtered.length / perPage);
+      const pag = document.getElementById('paginationControls');
+      if (totalPages <= 1) { pag.innerHTML = ''; return; }
+      let html = '';
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+      }
+      pag.innerHTML = html;
+    }
+
+    function goToPage(p) { currentPage = p; renderCrops(); window.scrollTo({ top: document.getElementById('cropList').offsetTop - 100, behavior:'smooth' }); }
+
+    function openCropModal(idx) {
+      const c = crops[idx];
+      const trName = typeof Lang !== 'undefined' ? Lang.t(c.name) : c.name;
+      const modalTitleText = typeof Lang !== 'undefined' ? Lang.t('Crop Details') : 'Crop Details';
+      document.getElementById('modalTitle').textContent = modalTitleText + ': ' + trName;
+      document.getElementById('modalBody').innerHTML = `
+        <img src="${c.image}" alt="${trName}" style="width:100%;height:200px;object-fit:cover;border-radius:var(--radius-md);margin-bottom:16px;" onerror="this.style.display='none'"/>
+        ${[
+          { icon:'🗓️', label:'Sowing Time', value:c.sow },
+          { icon:'🌿', label:'Fertilizer & Irrigation', value:c.fert },
+          { icon:'🐛', label:'Pest & Disease Control', value:c.pest },
+          { icon:'🌾', label:'Harvesting Time', value:c.harvest },
+        ].map(d => {
+          const lbl = typeof Lang !== 'undefined' ? Lang.t(d.label) : d.label;
+          const val = typeof Lang !== 'undefined' ? Lang.t(d.value) : d.value;
+          return `
+            <div class="detail-row">
+              <div class="detail-icon">${d.icon}</div>
+              <div><div class="detail-label">${lbl}</div><div class="detail-value">${val}</div></div>
+            </div>`;
+        }).join('')}
+        <div style="margin-top:16px;text-align:center;">
+          <a href="crop-planner.html" class="btn btn-primary btn-sm">📋 See in Crop Planner</a>
+        </div>`;
+      document.getElementById('cropModal').style.display = 'flex';
+    }
+
+    function closeCropModal(e) {
+      if (e.target === document.getElementById('cropModal')) document.getElementById('cropModal').style.display = 'none';
+    }
+
+    filterCrops();
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

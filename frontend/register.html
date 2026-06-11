@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Kishan Sathi — किसान साथी</title>
+  <meta name="description" content="Create your free Kishan Sathi account to access real-time weather, mandi prices, crop planning and more." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      min-height: 100vh;
+      background: linear-gradient(160deg, #041A11 0%, #0B3D2E 35%, #145A3C 65%, #1A7A52 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Animated background orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 450px; height: 450px;
+      top: -100px; right: -100px;
+      background: radial-gradient(circle, rgba(245,197,66,.09) 0%, transparent 70%);
+      animation: float 8s ease-in-out infinite;
+    }
+    body::after {
+      width: 350px; height: 350px;
+      bottom: -80px; left: -80px;
+      background: radial-gradient(circle, rgba(62,217,141,.08) 0%, transparent 70%);
+      animation: float 10s ease-in-out infinite reverse;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.05); }
+    }
+
+    .auth-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-2xl);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,.1);
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 520px;
+      animation: slideUp .5s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+      z-index: 1;
+    }
+    @media(max-width:480px) {
+      .auth-card { padding: 32px 20px; border-radius: var(--radius-xl); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .auth-brand .logo-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.1));
+    }
+    .auth-brand h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--green-800);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+      font-family: var(--font-display);
+    }
+    .auth-brand p {
+      font-size: 0.92rem;
+      color: var(--neutral-500);
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .lang-btn {
+      padding: 8px 22px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--green-200);
+      background: var(--green-50);
+      color: var(--green-700);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-body);
+    }
+    .lang-btn:hover { border-color: var(--green-400); background: var(--green-100); }
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--green-700), var(--green-600));
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(26,122,82,.3);
+    }
+
+    .benefit-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .chip {
+      background: var(--green-50);
+      border: 1px solid var(--green-200);
+      border-radius: var(--radius-full);
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      color: var(--green-700);
+      font-weight: 600;
+      transition: var(--transition-fast);
+    }
+    .chip:hover {
+      background: var(--green-100);
+      transform: translateY(-1px);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.86rem;
+      color: var(--neutral-700);
+      margin-bottom: 6px;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--neutral-200);
+      border-radius: var(--radius-md);
+      font-size: 0.93rem;
+      font-family: var(--font-body);
+      transition: var(--transition);
+      outline: none;
+      color: var(--neutral-800);
+      background: var(--neutral-50);
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--green-500);
+      box-shadow: 0 0 0 4px rgba(34,167,106,.1);
+      background: var(--white);
+    }
+    .field input::placeholder { color: var(--neutral-400); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) { .two-col { grid-template-columns: 1fr; gap: 18px; } }
+
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 48px; }
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--neutral-400);
+      padding: 0;
+      transition: var(--transition-fast);
+    }
+    .eye-btn:hover { color: var(--neutral-600); }
+
+    .strength-bar { height: 5px; background: var(--neutral-200); border-radius: var(--radius-full); margin-top: 7px; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: var(--radius-full); transition: var(--transition); width: 0; }
+    .strength-text { font-size: 0.74rem; font-weight: 600; color: var(--neutral-400); margin-top: 4px; display: inline-block; }
+
+    .alert {
+      padding: 13px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      display: none;
+      font-weight: 500;
+      animation: fadeInUp .2s ease;
+    }
+    .alert-error   { background: #FEF2F2; border: 1.5px solid #FCA5A5; color: #B91C1C; }
+    .alert-success { background: var(--green-50); border: 1.5px solid var(--green-300); color: var(--green-800); }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 22px;
+      font-size: 0.84rem;
+      color: var(--neutral-500);
+      line-height: 1.4;
+    }
+    .terms-row input[type="checkbox"] {
+      width: auto;
+      margin-top: 3px;
+      accent-color: var(--green-600);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 52px;
+      box-shadow: 0 4px 16px rgba(26,122,82,.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(26,122,82,.4);
+    }
+    .btn-primary:hover::after { opacity: 1; }
+    .btn-primary:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+    
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,.35);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary.loading .btn-label { display: none; }
+    .btn-primary.loading .spinner   { display: block; }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.9rem;
+      color: var(--neutral-500);
+    }
+    .auth-footer a {
+      color: var(--green-600);
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+    .auth-footer a:hover { color: var(--green-700); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div class="lang-switch">
+      <button class="lang-btn" id="lb-en" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="lb-hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+
+    <div class="auth-brand">
+      <span class="logo-icon">🌾</span>
+      <h1 data-i18n="register_title">Create Your Account</h1>
+      <p data-i18n="register_sub">Join thousands of Kishan Sathi farmers — Free Forever</p>
+    </div>
+
+    <div class="benefit-chips">
+      <span class="chip">✅ Free Forever</span>
+      <span class="chip">🌾 Crop Plans</span>
+      <span class="chip">🌦️ Weather</span>
+      <span class="chip">💬 Forum</span>
+      <span class="chip">📦 Orders</span>
+    </div>
+
+    <div class="alert alert-error"   id="alertError"></div>
+    <div class="alert alert-success" id="alertSuccess"></div>
+
+    <div class="field">
+      <label>👤 Full Name *</label>
+      <input type="text" id="nameInput" placeholder="Your full name" autocomplete="name" />
+    </div>
+
+    <div class="field">
+      <label>📧 Email Address *</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" />
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label>📞 Phone</label>
+        <input type="tel" id="phoneInput" placeholder="10-digit number" maxlength="10" />
+      </div>
+      <div class="field">
+        <label>📍 District</label>
+        <select id="districtInput">
+          <option value="">— Select —</option>
+          <option>Agra</option><option>Aligarh</option><option>Allahabad</option>
+          <option>Ambedkar Nagar</option><option>Amethi</option><option>Amroha</option>
+          <option>Auraiya</option><option>Azamgarh</option><option>Baghpat</option>
+          <option>Bahraich</option><option>Ballia</option><option>Balrampur</option>
+          <option>Banda</option><option>Barabanki</option><option>Bareilly</option>
+          <option>Basti</option><option>Bhadohi</option><option>Bijnor</option>
+          <option>Budaun</option><option>Bulandshahr</option><option>Chandauli</option>
+          <option>Chitrakoot</option><option>Deoria</option><option>Etah</option>
+          <option>Etawah</option><option>Faizabad</option><option>Farrukhabad</option>
+          <option>Fatehpur</option><option>Firozabad</option><option>Gautam Buddha Nagar</option>
+          <option>Ghaziabad</option><option>Ghazipur</option><option>Gonda</option>
+          <option>Gorakhpur</option><option>Hamirpur</option><option>Hapur</option>
+          <option>Hardoi</option><option>Hathras</option><option>Jalaun</option>
+          <option>Jaunpur</option><option>Jhansi</option><option>Kannauj</option>
+          <option>Kanpur Dehat</option><option>Kanpur Nagar</option><option>Kasganj</option>
+          <option>Kaushambi</option><option>Kheri</option><option>Kushinagar</option>
+          <option>Lalitpur</option><option>Lucknow</option><option>Maharajganj</option>
+          <option>Mahoba</option><option>Mainpuri</option><option>Mathura</option>
+          <option>Mau</option><option>Meerut</option><option>Mirzapur</option>
+          <option>Moradabad</option><option>Muzaffarnagar</option><option>Pilibhit</option>
+          <option>Pratapgarh</option><option>Raebareli</option><option>Rampur</option>
+          <option>Saharanpur</option><option>Sambhal</option><option>Sant Kabir Nagar</option>
+          <option>Shahjahanpur</option><option>Shamli</option><option>Shrawasti</option>
+          <option>Siddharthnagar</option><option>Sitapur</option><option>Sonbhadra</option>
+          <option>Sultanpur</option><option>Unnao</option><option>Varanasi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>🔒 Password * <span style="font-weight:400;color:#9ca3af;font-size:.78rem;">(min 6 characters)</span></label>
+      <div class="pw-wrap">
+        <input type="password" id="passwordInput" placeholder="Create a password" autocomplete="new-password" oninput="checkStrength(this.value)" />
+        <button class="eye-btn" type="button" onclick="togglePw('passwordInput', this)">👁️</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      <div class="strength-text" id="strengthText"></div>
+    </div>
+
+    <div class="field">
+      <label>🔒 Confirm Password *</label>
+      <div class="pw-wrap">
+        <input type="password" id="confirmInput" placeholder="Repeat your password" autocomplete="new-password" />
+        <button class="eye-btn" type="button" onclick="togglePw('confirmInput', this)">👁️</button>
+      </div>
+    </div>
+
+    <div class="terms-row">
+      <input type="checkbox" id="termsCheck" />
+      <label for="termsCheck" style="font-weight:400;cursor:pointer;">
+        I agree to use Kishan Sathi responsibly. This is a free farming advisory tool for Indian farmers.
+      </label>
+    </div>
+
+    <button class="btn-primary" id="registerBtn" onclick="doRegister()">
+      <span class="btn-label">✅ Create Account</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="auth-footer">
+      <span data-i18n="have_account">Already have an account?</span>
+      <a href="login.html" data-i18n="login_link"> Login here</a>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    const curLang = localStorage.getItem('ks_lang') || 'en';
+    document.getElementById('lb-' + curLang)?.classList.add('active');
+    if (typeof Lang !== 'undefined') Lang.apply(curLang);
+
+    if (localStorage.getItem('ks_token')) window.location.href = 'index.html';
+
+    function setLang(lang) {
+      localStorage.setItem('ks_lang', lang);
+      if (typeof Lang !== 'undefined') Lang.apply(lang);
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('lb-' + lang)?.classList.add('active');
+    }
+
+    function togglePw(id, btn) {
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+      btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function checkStrength(val) {
+      let s = 0;
+      if (val.length >= 6) s++;
+      if (val.length >= 10) s++;
+      if (/[A-Z]/.test(val)) s++;
+      if (/[0-9]/.test(val)) s++;
+      if (/[^A-Za-z0-9]/.test(val)) s++;
+      const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+      document.getElementById('strengthFill').style.cssText = `width:${s * 20}%;background:${colors[s] || 'transparent'}`;
+      document.getElementById('strengthText').textContent = val.length ? labels[s] || '' : '';
+    }
+
+    function showAlert(type, msg) {
+      document.getElementById('alertError').style.display   = 'none';
+      document.getElementById('alertSuccess').style.display = 'none';
+      const el = document.getElementById(type === 'error' ? 'alertError' : 'alertSuccess');
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function doRegister() {
+      const name     = document.getElementById('nameInput').value.trim();
+      const email    = document.getElementById('emailInput').value.trim();
+      const phone    = document.getElementById('phoneInput').value.trim();
+      const district = document.getElementById('districtInput').value;
+      const password = document.getElementById('passwordInput').value;
+      const confirm  = document.getElementById('confirmInput').value;
+      const terms    = document.getElementById('termsCheck').checked;
+      const lang     = localStorage.getItem('ks_lang') || 'en';
+
+      if (!name)               return showAlert('error', '❌ Please enter your full name.');
+      if (!email)              return showAlert('error', '❌ Please enter your email address.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAlert('error', '❌ Please enter a valid email address.');
+      if (!password)           return showAlert('error', '❌ Please enter a password.');
+      if (password.length < 6) return showAlert('error', '❌ Password must be at least 6 characters.');
+      if (password !== confirm) return showAlert('error', '❌ Passwords do not match.');
+      if (!terms)              return showAlert('error', '❌ Please agree to the terms to continue.');
+
+      const btn = document.getElementById('registerBtn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      try {
+        const user = await Auth.register({ name, email, password, phone, district, lang });
+        showAlert('success', '🎉 Account created! Welcome, ' + user.name + '! Redirecting…');
+        setTimeout(() => window.location.href = 'index.html', 1200);
+      } catch (err) {
+        const msg = err.message || '';
+        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('duplicate') || msg.toLowerCase().includes('409')) {
+          showAlert('error', '❌ This email is already registered. Please login instead.');
+        } else {
+          showAlert('error', '❌ ' + (msg || 'Registration failed. Please try again.'));
+        }
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  </script>
+</body>
+</html>

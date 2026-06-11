@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Forecast | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .weather-hero { background: linear-gradient(160deg, #041A2F 0%, #0A3D4E 30%, #0C5C5A 60%, #1A7A52 100%); }
+    .controls-row {
+      display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+      background: var(--white); padding: 22px 24px; border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md); margin-bottom: 28px;
+      border: 1px solid var(--neutral-100);
+    }
+    .controls-row .input-group { flex: 1; min-width: 200px; margin: 0; }
+
+    .current-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    @media(max-width:640px){ .current-grid { grid-template-columns: 1fr; } }
+
+    .weather-main-card {
+      background: linear-gradient(135deg, #0A3D4E 0%, #0C5C5A 50%, #1A7A52 100%);
+      color: white;
+      border-radius: var(--radius-2xl);
+      padding: 36px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 12px 32px rgba(10,61,78,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .weather-main-card::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -30%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .weather-main-card img { width: 96px; filter: drop-shadow(0 6px 16px rgba(0,0,0,.35)); position: relative; z-index: 1; }
+    .weather-main-card h2 { font-size: 3rem; font-weight: 900; color: white; position: relative; z-index: 1; }
+    .weather-main-card p  { color: rgba(255,255,255,.8); position: relative; z-index: 1; }
+
+    .weather-details-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    }
+    .detail-pill {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-100);
+      transition: var(--transition);
+    }
+    .detail-pill:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .detail-pill .icon { font-size: 1.7rem; }
+    .detail-pill .label { font-size: .8rem; color: var(--neutral-400); }
+    .detail-pill .value { font-weight: 700; font-size: 1.08rem; color: var(--neutral-800); }
+
+    .chart-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+      border: 1px solid var(--neutral-100);
+    }
+
+    .forecast-card {
+      min-width: 175px;
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 20px 14px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-100);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+    .forecast-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: var(--green-200); }
+    .forecast-card img { width: 56px; margin: 8px auto; }
+    .forecast-card .temp { font-size: 1.35rem; font-weight: 800; color: var(--green-700); font-family: var(--font-display); }
+    .forecast-card .desc { font-size: .82rem; color: var(--neutral-400); }
+
+    .advisory-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 24px; }
+
+    .read-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #1565c0, #1E88E5);
+      color: #fff; border: none; border-radius: var(--radius-md);
+      padding: 12px 22px; font-size: .92rem; font-weight: 700;
+      cursor: pointer; transition: var(--transition);
+      margin-top: 18px; font-family: var(--font-body);
+      box-shadow: 0 4px 14px rgba(21,101,192,.3);
+    }
+    .read-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(21,101,192,.4); }
+    .read-btn.speaking { background: linear-gradient(135deg, #C62828, #E53935); box-shadow: 0 4px 14px rgba(198,40,40,.3); }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero weather-hero">
+    <h1>🌦️ <span data-i18n="weather_title">Smart Weather Forecast</span></h1>
+    <p data-i18n="weather_sub">Hyperlocal 72-hour forecasts with agricultural advisories for all UP districts</p>
+  </div>
+
+  <div class="container section">
+    <!-- District Selector -->
+    <div class="controls-row">
+      <div class="input-group">
+        <label for="city" data-i18n="select_district">Select District</label>
+        <select id="city" onchange="getWeather()">
+          <option value="Agra" data-i18n="Agra">Agra</option><option value="Aligarh" data-i18n="Aligarh">Aligarh</option>
+          <option value="Allahabad" data-i18n="Allahabad">Allahabad</option><option value="Ambedkar Nagar" data-i18n="Ambedkar Nagar">Ambedkar Nagar</option>
+          <option value="Amethi" data-i18n="Amethi">Amethi</option><option value="Amroha" data-i18n="Amroha">Amroha</option>
+          <option value="Auraiya" data-i18n="Auraiya">Auraiya</option><option value="Azamgarh" data-i18n="Azamgarh">Azamgarh</option>
+          <option value="Baghpat" data-i18n="Baghpat">Baghpat</option><option value="Bahraich" data-i18n="Bahraich">Bahraich</option>
+          <option value="Ballia" data-i18n="Ballia">Ballia</option><option value="Balrampur" data-i18n="Balrampur">Balrampur</option>
+          <option value="Banda" data-i18n="Banda">Banda</option><option value="Barabanki" data-i18n="Barabanki">Barabanki</option>
+          <option value="Bareilly" data-i18n="Bareilly">Bareilly</option><option value="Basti" data-i18n="Basti">Basti</option>
+          <option value="Bhadohi" data-i18n="Bhadohi">Bhadohi</option><option value="Bijnor" data-i18n="Bijnor">Bijnor</option>
+          <option value="Budaun" data-i18n="Budaun">Budaun</option><option value="Bulandshahr" data-i18n="Bulandshahr">Bulandshahr</option>
+          <option value="Chandauli" data-i18n="Chandauli">Chandauli</option><option value="Chitrakoot" data-i18n="Chitrakoot">Chitrakoot</option>
+          <option value="Deoria" data-i18n="Deoria">Deoria</option><option value="Etah" data-i18n="Etah">Etah</option>
+          <option value="Etawah" data-i18n="Etawah">Etawah</option><option value="Faizabad" data-i18n="Faizabad">Faizabad</option>
+          <option value="Farrukhabad" data-i18n="Farrukhabad">Farrukhabad</option><option value="Fatehpur" data-i18n="Fatehpur">Fatehpur</option>
+          <option value="Firozabad" data-i18n="Firozabad">Firozabad</option><option value="Gautam Buddha Nagar" data-i18n="Gautam Buddha Nagar">Gautam Buddha Nagar</option>
+          <option value="Ghaziabad" data-i18n="Ghaziabad">Ghaziabad</option><option value="Ghazipur" data-i18n="Ghazipur">Ghazipur</option>
+          <option value="Gonda" data-i18n="Gonda">Gonda</option><option value="Gorakhpur" data-i18n="Gorakhpur">Gorakhpur</option>
+          <option value="Hamirpur" data-i18n="Hamirpur">Hamirpur</option><option value="Hapur" data-i18n="Hapur">Hapur</option>
+          <option value="Hardoi" data-i18n="Hardoi">Hardoi</option><option value="Hathras" data-i18n="Hathras">Hathras</option>
+          <option value="Jalaun" data-i18n="Jalaun">Jalaun</option><option value="Jaunpur" data-i18n="Jaunpur">Jaunpur</option>
+          <option value="Jhansi" data-i18n="Jhansi">Jhansi</option><option value="Kannauj" data-i18n="Kannauj">Kannauj</option>
+          <option value="Kanpur Dehat" data-i18n="Kanpur Dehat">Kanpur Dehat</option><option value="Kanpur Nagar" data-i18n="Kanpur Nagar">Kanpur Nagar</option>
+          <option value="Kasganj" data-i18n="Kasganj">Kasganj</option><option value="Kaushambi" data-i18n="Kaushambi">Kaushambi</option>
+          <option value="Kheri" data-i18n="Kheri">Kheri</option><option value="Kushinagar" data-i18n="Kushinagar">Kushinagar</option>
+          <option value="Lalitpur" data-i18n="Lalitpur">Lalitpur</option><option value="Lucknow" data-i18n="Lucknow">Lucknow</option>
+          <option value="Maharajganj" data-i18n="Maharajganj">Maharajganj</option><option value="Mahoba" data-i18n="Mahoba">Mahoba</option>
+          <option value="Mainpuri" data-i18n="Mainpuri">Mainpuri</option><option value="Mathura" data-i18n="Mathura">Mathura</option>
+          <option value="Mau" data-i18n="Mau">Mau</option><option value="Meerut" data-i18n="Meerut">Meerut</option>
+          <option value="Mirzapur" data-i18n="Mirzapur">Mirzapur</option><option value="Moradabad" data-i18n="Moradabad">Moradabad</option>
+          <option value="Muzaffarnagar" data-i18n="Muzaffarnagar">Muzaffarnagar</option><option value="Pilibhit" data-i18n="Pilibhit">Pilibhit</option>
+          <option value="Pratapgarh" data-i18n="Pratapgarh">Pratapgarh</option><option value="Raebareli" data-i18n="Raebareli">Raebareli</option>
+          <option value="Rampur" data-i18n="Rampur">Rampur</option><option value="Saharanpur" data-i18n="Saharanpur">Saharanpur</option>
+          <option value="Sambhal" data-i18n="Sambhal">Sambhal</option><option value="Sant Kabir Nagar" data-i18n="Sant Kabir Nagar">Sant Kabir Nagar</option>
+          <option value="Shahjahanpur" data-i18n="Shahjahanpur">Shahjahanpur</option><option value="Shamli" data-i18n="Shamli">Shamli</option>
+          <option value="Shrawasti" data-i18n="Shrawasti">Shrawasti</option><option value="Siddharthnagar" data-i18n="Siddharthnagar">Siddharthnagar</option>
+          <option value="Sitapur" data-i18n="Sitapur">Sitapur</option><option value="Sonbhadra" data-i18n="Sonbhadra">Sonbhadra</option>
+          <option value="Sultanpur" data-i18n="Sultanpur">Sultanpur</option><option value="Unnao" data-i18n="Unnao">Unnao</option>
+          <option value="Varanasi" data-i18n="Varanasi">Varanasi</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="getWeather()">🔍 <span data-i18n="get_forecast">Get Forecast</span></button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" style="text-align:center;padding:40px 0;">
+      <div class="spinner"></div>
+      <p class="text-muted mt-2" data-i18n="fetching_weather">Fetching weather data…</p>
+    </div>
+
+    <!-- Weather Data -->
+    <div id="weather-data" style="display:none;">
+
+      <!-- Current + Details -->
+      <div class="current-grid">
+        <div class="weather-main-card" id="current-main"><!-- JS --></div>
+        <div class="weather-details-grid" id="current-details"><!-- JS --></div>
+      </div>
+
+      <!-- Temp Chart -->
+      <div class="chart-card">
+        <h3 class="mb-2" style="color:var(--green-800);" data-i18n="temp_trend">📈 24-Hour Temperature Trend</h3>
+        <canvas id="temp-chart" height="80"></canvas>
+      </div>
+
+      <!-- 72-hour Forecast -->
+      <h3 class="mb-2" style="color:var(--green-800);" data-i18n="hr_forecast">🕐 72-Hour Hourly Forecast</h3>
+      <div class="h-scroll" id="forecast"><!-- JS --></div>
+
+      <!-- Advisories -->
+      <div class="advisory-row" id="advisory-row"></div>
+      <div style="text-align:center;">
+        <button class="read-btn" id="readBtn" onclick="readAdvisories()">
+          <span id="readBtnIcon">🔊</span> <span data-i18n="read_advisories">Read Advisories Aloud</span>
+        </button>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = "8f5a4fa2cfd9c3c00663423cf5c3b3c6";
+    let tempChart;
+
+    const districtMap = {
+      "Ambedkar Nagar": "Akbarpur", "Amethi": "Gauriganj",
+      "Siddharthnagar": "Naugarh", "Sant Kabir Nagar": "Khalilabad",
+      "Kasganj": "Kanshiram Nagar", "Shrawasti": "Bhinga", "Kaushambi": "Manjhanpur"
+    };
+
+    function suggestCrop(temp, humidity) {
+      if (temp > 30 && humidity > 70) return "Rice, Sugarcane, Maize";
+      if (temp < 25 && humidity < 60) return "Wheat, Mustard, Chickpea";
+      return "Check local soil and rainfall trends";
+    }
+
+    function getAdvisory(desc) {
+      if (desc.includes("rain"))  return { icon: "☔", msg: "Rain expected — delay irrigation and protect seeds from waterlogging.", cls: "alert-info" };
+      if (desc.includes("clear")) return { icon: "☀️", msg: "Clear weather — ideal time for sowing, spraying pesticides, and field work.", cls: "alert-success" };
+      if (desc.includes("cloud")) return { icon: "🌥️", msg: "Cloudy skies — monitor soil moisture before scheduling irrigation.", cls: "alert-warning" };
+      return { icon: "ℹ️", msg: "Monitor local field conditions and check district-level alerts.", cls: "alert-warning" };
+    }
+
+    function getAlerts(temp, wind, desc) {
+      const alerts = [];
+      if (temp > 40) alerts.push({ icon: "🔥", msg: "Heatwave alert — avoid working in direct sunlight, ensure livestock shade and water.", cls: "alert-danger" });
+      if (temp < 5)  alerts.push({ icon: "❄️", msg: "Coldwave alert — protect rabi crops, maintain soil insulation and irrigation.", cls: "alert-info" });
+      if (wind > 10) alerts.push({ icon: "💨", msg: "Strong winds expected — secure nets, plastic covers, and lightweight equipment.", cls: "alert-warning" });
+      if (desc.includes("storm")) alerts.push({ icon: "🌪️", msg: "Storm warning — possible hail damage. Move equipment indoors.", cls: "alert-danger" });
+      if (desc.includes("rain")) alerts.push({ icon: "🌧️", msg: "Heavy rain possible — watch for field flooding and drainage issues.", cls: "alert-info" });
+      return alerts;
+    }
+
+    async function getWeather() {
+      const sel = document.getElementById("city").value;
+      const city = districtMap[sel] || sel;
+
+      document.getElementById("loading-state").style.display = "block";
+      document.getElementById("weather-data").style.display = "none";
+
+      try {
+        const [forecastRes, currentRes] = await Promise.all([
+          fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city},IN&appid=${apiKey}&units=metric`),
+          fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},IN&appid=${apiKey}&units=metric`)
+        ]);
+
+        const forecastData = await forecastRes.json();
+        const currentData  = await currentRes.json();
+
+        if (forecastData.cod !== "200") throw new Error(forecastData.message);
+
+        // ── Current weather ──
+        const c = currentData;
+        const iconUrl = `https://openweathermap.org/img/wn/${c.weather[0].icon}@2x.png`;
+        const translatedCity = typeof Lang !== 'undefined' ? Lang.t(sel) : sel;
+        const weatherDesc = typeof Lang !== 'undefined' ? Lang.t(c.weather[0].description) : c.weather[0].description;
+        const feelsLikeLbl = typeof Lang !== 'undefined' ? Lang.t('feels_like') : 'Feels like';
+
+        document.getElementById("current-main").innerHTML = `
+          <img src="${iconUrl}" alt="${weatherDesc}"/>
+          <div>
+            <p style="opacity:.8;font-size:.95rem;">${translatedCity}, Uttar Pradesh</p>
+            <h2>${Math.round(c.main.temp)}°C</h2>
+            <p style="text-transform:capitalize;font-size:1.05rem;">${weatherDesc}</p>
+            <p style="opacity:.7;font-size:.9rem;margin-top:4px;">${feelsLikeLbl} ${Math.round(c.main.feels_like)}°C</p>
+          </div>`;
+
+        const locale = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en';
+        const sunrise = new Date(c.sys.sunrise * 1000).toLocaleTimeString(locale, {hour:'2-digit',minute:'2-digit'});
+        const sunset  = new Date(c.sys.sunset  * 1000).toLocaleTimeString(locale, {hour:'2-digit',minute:'2-digit'});
+
+        const humLbl = typeof Lang !== 'undefined' ? Lang.t('humidity') : 'Humidity';
+        const windLbl = typeof Lang !== 'undefined' ? Lang.t('wind_speed') : 'Wind Speed';
+        const minMaxLbl = typeof Lang !== 'undefined' ? Lang.t('min_max') : 'Min / Max';
+        const visLbl = typeof Lang !== 'undefined' ? Lang.t('visibility') : 'Visibility';
+        const sunrLbl = typeof Lang !== 'undefined' ? Lang.t('sunrise') : 'Sunrise';
+        const sunsLbl = typeof Lang !== 'undefined' ? Lang.t('sunset') : 'Sunset';
+
+        document.getElementById("current-details").innerHTML = `
+          <div class="detail-pill"><div class="icon">💧</div><div><div class="label">${humLbl}</div><div class="value">${c.main.humidity}%</div></div></div>
+          <div class="detail-pill"><div class="icon">🌬️</div><div><div class="label">${windLbl}</div><div class="value">${c.wind.speed} m/s</div></div></div>
+          <div class="detail-pill"><div class="icon">🌡️</div><div><div class="label">${minMaxLbl}</div><div class="value">${Math.round(c.main.temp_min)}° / ${Math.round(c.main.temp_max)}°</div></div></div>
+          <div class="detail-pill"><div class="icon">👁️</div><div><div class="label">${visLbl}</div><div class="value">${(c.visibility/1000).toFixed(1)} km</div></div></div>
+          <div class="detail-pill"><div class="icon">🌅</div><div><div class="label">${sunrLbl}</div><div class="value">${sunrise}</div></div></div>
+          <div class="detail-pill"><div class="icon">🌇</div><div><div class="label">${sunsLbl}</div><div class="value">${sunset}</div></div></div>`;
+
+        // ── Temperature Chart ──
+        const hours = forecastData.list.slice(0, 24);
+        const labels = hours.map(e => new Date(e.dt*1000).toLocaleTimeString(locale, {hour:'2-digit',minute:'2-digit'}));
+        const temps  = hours.map(e => e.main.temp);
+
+        if (tempChart) tempChart.destroy();
+        tempChart = new Chart(document.getElementById("temp-chart"), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: typeof Lang !== 'undefined' ? Lang.t('Temperature (°C)') : 'Temperature (°C)',
+              data: temps,
+              borderColor: '#2e8b57',
+              backgroundColor: 'rgba(46,139,87,.1)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+              pointBackgroundColor: '#2e8b57'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font:{size:11} } },
+              y: { title: { display: true, text: '°C' }, ticks: { font:{size:11} } }
+            }
+          }
+        });
+
+        // ── 72-hour forecast cards ──
+        const all72 = forecastData.list.slice(0, 72);
+        document.getElementById("forecast").innerHTML = all72.map(entry => {
+          const d = new Date(entry.dt * 1000);
+          const ico = `https://openweathermap.org/img/wn/${entry.weather[0].icon}@2x.png`;
+          const entryDesc = typeof Lang !== 'undefined' ? Lang.t(entry.weather[0].description) : entry.weather[0].description;
+          return `<div class="forecast-card">
+            <div style="font-size:.75rem;color:var(--neutral-400);">${d.toLocaleDateString(locale,{weekday:'short',month:'short',day:'numeric'})}</div>
+            <div style="font-size:.75rem;color:var(--neutral-400);">${d.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'})}</div>
+            <img src="${ico}" alt="icon"/>
+            <div class="temp">${Math.round(entry.main.temp)}°C</div>
+            <div class="desc">${entryDesc}</div>
+            <div style="font-size:.78rem;margin-top:6px;color:var(--sky-500);">💧${entry.main.humidity}%</div>
+          </div>`;
+        }).join('');
+
+        // ── Advisory boxes ──
+        const adv    = getAdvisory(c.weather[0].description);
+        const alerts = getAlerts(c.main.temp, c.wind.speed, c.weather[0].description);
+        const crop   = suggestCrop(c.main.temp, c.main.humidity);
+
+        const advMsgTranslated = typeof Lang !== 'undefined' ? Lang.t(adv.msg) : adv.msg;
+        const cropTranslated = typeof Lang !== 'undefined' ? Lang.t(crop) : crop;
+        const advisoryWord = typeof Lang !== 'undefined' ? Lang.t('advisory_lbl') : 'Advisory:';
+        const cropSuggestionWord = typeof Lang !== 'undefined' ? Lang.t('crop_suggestion_lbl') : 'Crop Suggestion:';
+
+        let advisoryHTML = `
+          <div class="alert-box ${adv.cls}">${adv.icon} <strong>${advisoryWord}</strong> ${advMsgTranslated}</div>
+          <div class="alert-box alert-earth">🌾 <strong>${cropSuggestionWord}</strong> ${cropTranslated}</div>`;
+        alerts.forEach(a => {
+          const alertMsg = typeof Lang !== 'undefined' ? Lang.t(a.msg) : a.msg;
+          advisoryHTML += `<div class="alert-box ${a.cls}">${a.icon} ${alertMsg}</div>`;
+        });
+        if (!alerts.length) {
+          const noAlertsMsg = typeof Lang !== 'undefined' ? Lang.t('no_alerts') : '✅ No extreme weather alerts at the moment.';
+          advisoryHTML += `<div class="alert-box alert-success">${noAlertsMsg}</div>`;
+        }
+
+        document.getElementById("advisory-row").innerHTML = advisoryHTML;
+
+        document.getElementById("loading-state").style.display = "none";
+        document.getElementById("weather-data").style.display  = "block";
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("loading-state").innerHTML = `<div class="alert-box alert-danger">❌ Could not fetch weather data. Check your connection and try again.</div>`;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", getWeather);
+
+    function readAdvisories() {
+      if (!window.speechSynthesis) {
+        const noTtsMsg = typeof Lang !== 'undefined' ? Lang.t('tts_not_supported') : 'Text-to-speech is not supported in this browser.';
+        alert(noTtsMsg);
+        return;
+      }
+      const btn = document.getElementById('readBtn');
+      const icon = document.getElementById('readBtnIcon');
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        btn.classList.remove('speaking');
+        btn.innerHTML = `<span id="readBtnIcon">🔊</span> ${typeof Lang !== 'undefined' ? Lang.t('read_advisories') : 'Read Advisories Aloud'}`;
+        return;
+      }
+      const boxes = document.querySelectorAll('#advisory-row .alert-box');
+      const text = [...boxes].map(b => b.textContent.trim()).join('. ');
+      if (!text) return;
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = typeof Lang !== 'undefined' && Lang.getCurrent() === 'hi' ? 'hi-IN' : 'en-US';
+      utt.rate = 0.9;
+      utt.pitch = 1;
+      const voices = window.speechSynthesis.getVoices();
+      const voiceSelected = voices.find(v => v.lang.startsWith(utt.lang.split('-')[0]));
+      if (voiceSelected) utt.voice = voiceSelected;
+      btn.classList.add('speaking');
+      btn.innerHTML = `<span id="readBtnIcon">⏹️</span> ${typeof Lang !== 'undefined' ? Lang.t('stop_reading') : 'Stop Reading'}`;
+      utt.onend = () => {
+        btn.classList.remove('speaking');
+        btn.innerHTML = `<span id="readBtnIcon">🔊</span> ${typeof Lang !== 'undefined' ? Lang.t('read_advisories') : 'Read Advisories Aloud'}`;
+      };
+      utt.onerror = () => {
+        btn.classList.remove('speaking');
+        btn.innerHTML = `<span id="readBtnIcon">🔊</span> ${typeof Lang !== 'undefined' ? Lang.t('read_advisories') : 'Read Advisories Aloud'}`;
+      };
+      window.speechSynthesis.speak(utt);
+    }
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

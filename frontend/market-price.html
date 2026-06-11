@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mandi Prices | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .select-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px; align-items: flex-end;
+      background: var(--white);
+      padding: 24px; border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md); margin-bottom: 28px;
+      border: 1px solid var(--neutral-100);
+    }
+    @media(max-width:600px){ .select-row { grid-template-columns: 1fr; } }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 14px; margin-bottom: 28px;
+    }
+    .stat-pill {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-100);
+      border-top: 3px solid var(--green-500);
+      transition: var(--transition);
+    }
+    .stat-pill:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+    .stat-pill .num  { font-size: 1.6rem; font-weight: 800; color: var(--green-700); font-family: var(--font-display); }
+    .stat-pill .lbl  { font-size: .8rem; color: var(--neutral-400); margin-top: 5px; }
+
+    .table-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 14px; margin-bottom: 14px;
+    }
+    .date-chip {
+      background: var(--gold-50);
+      border: 1.5px solid var(--gold-300);
+      border-radius: var(--radius-full);
+      padding: 6px 16px;
+      font-size: .85rem; font-weight: 600; color: var(--earth-700);
+    }
+
+    .sort-btn { background: none; border: 1.5px solid var(--neutral-200); border-radius: var(--radius-sm); padding: 7px 14px; cursor: pointer; font-size: .85rem; transition: var(--transition); font-family: var(--font-body); }
+    .sort-btn:hover { background: var(--green-50); border-color: var(--green-400); }
+
+    .mic-btn {
+      background: linear-gradient(135deg, var(--green-600), var(--green-500)); color: #fff; border: none;
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      cursor: pointer; font-size: 1rem; transition: var(--transition);
+      flex-shrink: 0; box-shadow: 0 2px 8px rgba(26,122,82,.3);
+    }
+    .mic-btn:hover { background: linear-gradient(135deg, var(--green-700), var(--green-600)); transform: scale(1.05); }
+    .mic-btn.listening { background: linear-gradient(135deg, #dc2626, #ef4444); animation: pulse .8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    .empty-state {
+      text-align: center; padding: 72px 24px; color: var(--neutral-400);
+    }
+    .empty-state .icon { font-size: 3.5rem; margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-600) 100%);">
+    <h1>💹 <span data-i18n="market_title">Mandi Price Finder</span></h1>
+    <p data-i18n="market_sub">Live commodity prices from government API for all Uttar Pradesh markets</p>
+  </div>
+
+  <div class="container section">
+
+    <!-- Selectors -->
+    <div class="select-row">
+      <div class="input-group">
+        <label for="district" data-i18n="district">District</label>
+        <select id="district" onchange="loadMarkets()"></select>
+      </div>
+      <div class="input-group">
+        <label for="market" data-i18n="market">Market (Mandi)</label>
+        <select id="market"></select>
+      </div>
+      <button class="btn btn-primary" onclick="getPrices()" style="height:42px;" data-i18n="show_prices">Show Prices</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" style="display:none;text-align:center;padding:30px;">
+      <div class="spinner"></div>
+      <p class="text-muted mt-2" id="loading-text" data-i18n="loading">Loading…</p>
+    </div>
+
+    <!-- Stats Bar (hidden until data loads) -->
+    <div class="stats-bar" id="stats-bar" style="display:none;">
+      <div class="stat-pill"><div class="num" id="stat-count">—</div><div class="lbl" data-i18n="total_commodities">Total Commodities</div></div>
+      <div class="stat-pill"><div class="num" id="stat-min">—</div><div class="lbl" data-i18n="min_price">Min Price (₹/qtl)</div></div>
+      <div class="stat-pill"><div class="num" id="stat-max">—</div><div class="lbl" data-i18n="max_price">Max Price (₹/qtl)</div></div>
+      <div class="stat-pill"><div class="num" id="stat-avg">—</div><div class="lbl" data-i18n="avg_price">Avg Modal Price</div></div>
+    </div>
+
+    <!-- Table -->
+    <div id="output-wrap" style="display:none;">
+      <div class="table-toolbar">
+        <div class="search-bar" style="flex:1;max-width:340px;display:flex;align-items:center;gap:6px;">
+          <span>🔎</span>
+          <input type="text" id="searchInput" placeholder="Search commodity… or 🎤 speak" data-i18n-ph="search_commodity_placeholder" onkeyup="filterTable()" style="flex:1;" />
+          <button class="mic-btn" id="micBtn" onclick="voiceSearch('searchInput', filterTable)" title="Voice Search (Hindi/English)">🎤</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="date-chip" id="date-chip"></span>
+          <button class="sort-btn" onclick="sortTable()" data-i18n="mandi_sort_btn">⬆️ Sort A–Z</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="ks-table" id="priceTable">
+          <thead>
+            <tr>
+              <th data-i18n="commodity">Commodity</th>
+              <th data-i18n="variety">Variety</th>
+              <th data-i18n="grade">Grade</th>
+              <th data-i18n="arrival_date">Arrival Date</th>
+              <th data-i18n="min_price">Min (₹/qtl)</th>
+              <th data-i18n="max_price">Max (₹/qtl)</th>
+              <th data-i18n="avg_price">Modal (₹/qtl)</th>
+              <th data-i18n="per_kg">Per kg (Modal)</th>
+            </tr>
+          </thead>
+          <tbody id="priceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+      <div class="icon">🌾</div>
+      <p data-i18n="mandi_select_instruction_html">Select a district and market, then click <strong>Show Prices</strong></p>
+    </div>
+
+  </div>
+
+  <script>
+    const state = "Uttar Pradesh";
+    const API_KEY = "579b464db66ec23bdd00000184776949371746c051747d4e51c34eff";
+    const districts = ["Agra","Aligarh","Allahabad","Ambedkar Nagar","Amethi","Amroha","Auraiya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bhadohi","Bijnor","Budaun","Bulandshahar","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Faizabad","Farrukhabad","Fatehpur","Firozabad","Gautam Buddha Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hapur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Kannauj","Kanpur Dehat","Kanpur Nagar","Kasganj","Kaushambi","Kheri","Kushinagar","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Raebareli","Rampur","Saharanpur","Sambhal","Sant Kabir Nagar","Shahjahanpur","Shamli","Shrawasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"];
+
+    function setLoading(show, msg = 'Loading…') {
+      document.getElementById("loading").style.display = show ? "block" : "none";
+      document.getElementById("loading-text").textContent = typeof Lang !== 'undefined' ? Lang.t(msg) : msg;
+    }
+
+    function loadDistricts() {
+      const sel = document.getElementById('district');
+      const selectDistrictPrompt = typeof Lang !== 'undefined' ? Lang.t('select_district_prompt') : '— Select District —';
+      sel.innerHTML = '<option value="">' + selectDistrictPrompt + '</option>';
+      districts.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d;
+        o.textContent = typeof Lang !== 'undefined' ? Lang.t(d) : d;
+        sel.appendChild(o);
+      });
+      const saved = localStorage.getItem("ks_district");
+      if (saved) { sel.value = saved; loadMarkets(); }
+    }
+
+    async function loadMarkets() {
+      const district = document.getElementById('district').value;
+      localStorage.setItem("ks_district", district);
+      const mSel = document.getElementById('market');
+      const loadingMarketsPrompt = typeof Lang !== 'undefined' ? Lang.t('loading_markets_prompt') : '— Loading markets… —';
+      mSel.innerHTML = '<option value="">' + loadingMarketsPrompt + '</option>';
+      if (!district) return;
+      setLoading(true, (typeof Lang !== 'undefined' ? Lang.t('loading_markets') : 'Loading markets for ') + ' ' + district + '…');
+      try {
+        const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${API_KEY}&format=json&limit=1000&filters[state]=${encodeURIComponent(state)}&filters[district]=${encodeURIComponent(district)}`;
+        const res  = await fetch(url);
+        const data = await res.json();
+        const markets = [...new Set((data.records||[]).map(r => r.market))];
+        const selectMarketPrompt = typeof Lang !== 'undefined' ? Lang.t('select_market_prompt') : '— Select Market —';
+        mSel.innerHTML = '<option value="">' + selectMarketPrompt + '</option>';
+        markets.sort().forEach(m => {
+          const o = document.createElement('option'); o.value = m;
+          o.textContent = typeof Lang !== 'undefined' ? Lang.t(m) : m;
+          mSel.appendChild(o);
+        });
+        const saved = localStorage.getItem("ks_market");
+        if (saved) mSel.value = saved;
+      } catch(e) { mSel.innerHTML = '<option>Error loading markets</option>'; }
+      setLoading(false);
+    }
+
+    async function getPrices() {
+      const district = document.getElementById('district').value;
+      const market   = document.getElementById('market').value;
+      localStorage.setItem("ks_market", market);
+      if (!district || !market) { alert(typeof Lang !== 'undefined' ? Lang.t('mandi_alert_select') : "⚠️ Please select both District and Market."); return; }
+
+      document.getElementById("output-wrap").style.display = "none";
+      document.getElementById("empty-state").style.display = "none";
+      document.getElementById("stats-bar").style.display   = "none";
+      setLoading(true, typeof Lang !== 'undefined' ? Lang.t('fetching_prices') : '🔄 Fetching price data from government API…');
+
+      try {
+        const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${API_KEY}&format=json&limit=1000&filters[state]=${encodeURIComponent(state)}&filters[district]=${encodeURIComponent(district)}&filters[market]=${encodeURIComponent(market)}`;
+        const res  = await fetch(url);
+        const data = await res.json();
+
+        if (!data.records || !data.records.length) {
+          const noPriceMsg = typeof Lang !== 'undefined' ? Lang.t('no_price_data') : 'No price data found for';
+          const tryDiffMandiMsg = typeof Lang !== 'undefined' ? Lang.t('try_diff_mandi') : 'Try a different mandi.';
+          document.getElementById("empty-state").style.display = "block";
+          document.getElementById("empty-state").innerHTML = `<div class="icon">📭</div><p>${noPriceMsg} <strong>${market}</strong>. ${tryDiffMandiMsg}</p>`;
+          setLoading(false); return;
+        }
+
+        // Stats
+        const modals = data.records.map(r => parseFloat(r.modal_price)).filter(n => !isNaN(n));
+        const mins   = data.records.map(r => parseFloat(r.min_price)).filter(n => !isNaN(n));
+        const maxs   = data.records.map(r => parseFloat(r.max_price)).filter(n => !isNaN(n));
+        document.getElementById("stat-count").textContent = data.records.length;
+        document.getElementById("stat-min").textContent   = Math.min(...mins).toLocaleString('en-IN');
+        document.getElementById("stat-max").textContent   = Math.max(...maxs).toLocaleString('en-IN');
+        document.getElementById("stat-avg").textContent   = Math.round(modals.reduce((a,b)=>a+b,0)/modals.length).toLocaleString('en-IN');
+        document.getElementById("stats-bar").style.display = "grid";
+
+        const locale = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en-IN';
+        document.getElementById("date-chip").textContent = "📅 " + new Date().toLocaleDateString(locale, {year:'numeric',month:'long',day:'numeric'});
+
+        const tbody = document.getElementById("priceBody");
+        tbody.innerHTML = data.records.map(r => {
+          const kgPrice = (parseFloat(r.modal_price)/100).toFixed(2);
+          const translatedCommodity = typeof Lang !== 'undefined' ? Lang.t(r.commodity) : r.commodity;
+          const translatedVariety = r.variety ? (typeof Lang !== 'undefined' ? Lang.t(r.variety) : r.variety) : '—';
+          const translatedGrade = r.grade ? (typeof Lang !== 'undefined' ? Lang.t(r.grade) : r.grade) : '—';
+          return `<tr>
+            <td><strong>${translatedCommodity}</strong></td>
+            <td>${translatedVariety}</td>
+            <td><span class="badge badge-green">${translatedGrade}</span></td>
+            <td>${r.arrival_date||'—'}</td>
+            <td>₹${parseFloat(r.min_price).toLocaleString('en-IN')}</td>
+            <td>₹${parseFloat(r.max_price).toLocaleString('en-IN')}</td>
+            <td><strong>₹${parseFloat(r.modal_price).toLocaleString('en-IN')}</strong></td>
+            <td class="text-green"><strong>₹${kgPrice}</strong></td>
+          </tr>`;
+        }).join('');
+
+        document.getElementById("output-wrap").style.display = "block";
+      } catch(e) {
+        const errorMsg = typeof Lang !== 'undefined' ? Lang.t('mandi_connection_error') : 'Error fetching data. Please check your connection.';
+        document.getElementById("empty-state").style.display = "block";
+        document.getElementById("empty-state").innerHTML = `<div class="icon">⚠️</div><p>${errorMsg}</p>`;
+      }
+      setLoading(false);
+    }
+
+    function filterTable() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      document.querySelectorAll("#priceBody tr").forEach(row => {
+        row.style.display = row.cells[0].textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    }
+
+    function sortTable() {
+      const tbody = document.getElementById("priceBody");
+      [...tbody.rows].sort((a,b) => a.cells[0].textContent.localeCompare(b.cells[0].textContent))
+                     .forEach(r => tbody.appendChild(r));
+    }
+
+    window.onload = loadDistricts;
+
+    function voiceSearch(inputId, callback) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        const voiceNotSupported = typeof Lang !== 'undefined' ? Lang.t('voice_search_not_supported') : 'Voice search is not supported in this browser. Try Chrome.';
+        alert(voiceNotSupported);
+        return;
+      }
+      const recognition = new SR();
+      recognition.lang = typeof Lang !== 'undefined' && Lang.getCurrent() === 'hi' ? 'hi-IN' : 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      const btn = document.getElementById('micBtn');
+      btn.classList.add('listening');
+      btn.textContent = '🔴';
+      recognition.start();
+      recognition.onresult = e => {
+        document.getElementById(inputId).value = e.results[0][0].transcript;
+        if (typeof callback === 'function') callback();
+      };
+      recognition.onend = () => { btn.classList.remove('listening'); btn.textContent = '🎤'; };
+      recognition.onerror = () => { btn.classList.remove('listening'); btn.textContent = '🎤'; };
+    }
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

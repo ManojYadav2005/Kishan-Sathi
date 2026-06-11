@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width:800px){ .profile-layout { grid-template-columns: 1fr; } }
+
+    /* Sidebar card */
+    .profile-sidebar {
+      background: var(--white); border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md); padding: 32px; text-align: center;
+      position: sticky; top: 84px;
+      border: 1px solid var(--neutral-100);
+    }
+    .avatar-wrap {
+      position: relative; width: 108px; height: 108px; margin: 0 auto 18px;
+    }
+    .avatar-img {
+      width: 108px; height: 108px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--green-400); background: var(--green-50);
+      box-shadow: 0 4px 16px rgba(34,167,106,.2);
+    }
+    .avatar-edit {
+      position: absolute; bottom: 2px; right: 2px;
+      background: linear-gradient(135deg, var(--green-600), var(--green-500)); color: white; border: none;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; font-size: .85rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(26,122,82,.3);
+      transition: var(--transition-fast);
+    }
+    .avatar-edit:hover { transform: scale(1.1); }
+    .profile-name { font-size: 1.3rem; font-weight: 700; color: var(--green-800); font-family: var(--font-display); }
+    .profile-email { color: var(--neutral-400); font-size: .88rem; margin-top: 5px; }
+    .profile-district { color: var(--neutral-500); font-size: .88rem; margin-top: 4px; }
+    .profile-badge { margin: 14px auto; }
+
+    .sidebar-meta { margin-top: 18px; font-size: .83rem; color: var(--neutral-400); line-height: 2; text-align: left; }
+    .sidebar-meta strong { color: var(--neutral-700); }
+
+    .sidebar-nav { margin-top: 22px; border-top: 1px solid var(--neutral-100); padding-top: 18px; }
+    .sidebar-nav-btn {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 11px 16px; border-radius: var(--radius-lg);
+      font-size: .92rem; font-weight: 600; cursor: pointer;
+      border: none; background: none; font-family: var(--font-body);
+      transition: var(--transition); text-align: left; color: var(--neutral-700);
+    }
+    .sidebar-nav-btn:hover { background: var(--green-50); color: var(--green-700); transform: translateX(3px); }
+    .sidebar-nav-btn.active { background: var(--green-100); color: var(--green-800); }
+    .sidebar-nav-btn.danger { color: var(--red-500); }
+    .sidebar-nav-btn.danger:hover { background: var(--red-100); transform: translateX(3px); }
+
+    /* Tabs */
+    .profile-panel { display: none; }
+    .profile-panel.active { display: block; }
+
+    .panel-card {
+      background: var(--white); border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md); padding: 32px; margin-bottom: 24px;
+      border: 1px solid var(--neutral-100);
+    }
+    .panel-card h3 { color: var(--green-800); margin-bottom: 22px; font-size: 1.2rem; border-bottom: 2px solid var(--green-100); padding-bottom: 12px; font-family: var(--font-display); }
+
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:500px){ .input-row { grid-template-columns: 1fr; } }
+    .input-group { margin-bottom: 18px; }
+
+    /* Orders table */
+    .order-card {
+      background: var(--neutral-50); border-radius: var(--radius-lg);
+      border: 1.5px solid var(--neutral-200); padding: 18px; margin-bottom: 14px;
+      transition: var(--transition);
+    }
+    .order-card:hover { border-color: var(--green-300); box-shadow: var(--shadow-sm); }
+    .order-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .order-id { font-weight: 700; color: var(--green-700); font-family: var(--font-display); }
+    .order-date { font-size: .82rem; color: var(--neutral-400); }
+    .order-items { margin-top: 8px; font-size: .88rem; color: var(--neutral-600); }
+    .order-total { margin-top: 8px; font-weight: 700; color: var(--green-600); }
+
+    .status-badge {
+      padding: 4px 12px; border-radius: var(--radius-full); font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    }
+    .status-pending   { background: #fff8e1; color: #f57f17; }
+    .status-confirmed { background: var(--sky-100); color: var(--sky-600); }
+    .status-shipped   { background: #e8f5e9; color: #2e7d32; }
+    .status-delivered { background: var(--green-100); color: var(--green-800); }
+    .status-cancelled { background: var(--red-100); color: var(--red-500); }
+
+    /* Lang toggle */
+    .lang-toggle-group { display: flex; gap: 8px; }
+    .lang-toggle-btn-lg {
+      flex: 1; padding: 11px; border-radius: var(--radius-lg);
+      border: 2px solid var(--neutral-200); background: var(--neutral-50);
+      font-weight: 600; cursor: pointer; font-family: var(--font-body);
+      transition: var(--transition); font-size: .95rem;
+    }
+    .lang-toggle-btn-lg:hover { border-color: var(--green-300); }
+    .lang-toggle-btn-lg.active { background: linear-gradient(135deg, var(--green-700), var(--green-500)); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(26,122,82,.25); }
+
+    .error-box   { background: var(--red-100); border: 1.5px solid var(--red-500); border-radius: var(--radius-md); padding: 12px 16px; color: var(--red-500); font-size: .88rem; margin-bottom: 14px; display: none; animation: fadeInUp .2s ease; }
+    .success-box { background: var(--green-50); border: 1.5px solid var(--green-400); border-radius: var(--radius-md); padding: 12px 16px; color: var(--green-700); font-size: .88rem; margin-bottom: 14px; display: none; animation: fadeInUp .2s ease; }
+
+    .avatar-placeholder {
+      width: 108px; height: 108px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-600), var(--green-500)); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem; font-weight: 700; border: 3px solid var(--green-400);
+      margin: 0 auto 18px;
+      box-shadow: 0 4px 16px rgba(34,167,106,.2);
+      font-family: var(--font-display);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-600) 100%);">
+    <h1>👤 <span data-i18n="profile_title">My Profile</span></h1>
+    <p id="profileSubtitle" data-i18n="manage_account_sub">Manage your account, orders and preferences</p>
+  </div>
+
+  <div class="container section">
+    <div class="profile-layout">
+
+      <!-- Sidebar -->
+      <div class="profile-sidebar">
+        <div id="avatarArea">
+          <div class="avatar-placeholder" id="avatarInitials">?</div>
+        </div>
+        <div class="profile-name"  id="sidebarName">Loading…</div>
+        <div class="profile-email" id="sidebarEmail"></div>
+        <div class="profile-district" id="sidebarDistrict"></div>
+        <div class="profile-badge mt-1"><span class="badge badge-green" id="sidebarRole">Farmer</span></div>
+
+        <div class="sidebar-meta">
+          <div><strong data-i18n="member_since">Member since:</strong> <span id="sidebarJoined">—</span></div>
+          <div><strong data-i18n="last_login">Last login:</strong> <span id="sidebarLastLogin">—</span></div>
+        </div>
+
+        <div class="sidebar-nav">
+          <button class="sidebar-nav-btn active" onclick="showPanel('overview', this)">📊 <span data-i18n="overview">Overview</span></button>
+          <button class="sidebar-nav-btn" onclick="showPanel('edit', this)">✏️ <span data-i18n="edit_profile">Edit Profile</span></button>
+          <button class="sidebar-nav-btn" onclick="showPanel('orders', this)">📦 <span data-i18n="my_orders">My Orders</span></button>
+          <button class="sidebar-nav-btn" onclick="showPanel('password', this)">🔒 <span data-i18n="change_password">Change Password</span></button>
+          <button class="sidebar-nav-btn" onclick="showPanel('settings', this)">⚙️ <span data-i18n="settings">Settings</span></button>
+          <button class="sidebar-nav-btn danger" onclick="doLogout()">🚪 <span data-i18n="nav_logout">Logout</span></button>
+        </div>
+      </div>
+
+      <!-- Main panels -->
+      <div>
+
+        <!-- Overview -->
+        <div class="profile-panel active" id="panel-overview">
+          <div class="panel-card">
+            <h3 data-i18n="account_overview_title">📊 Account Overview</h3>
+            <div class="grid-2" style="gap:12px;">
+              <div class="alert-box alert-success" data-i18n="plan_crops_tip_html">🌾 <strong>Crop Planner</strong><br>Plan your Kharif, Rabi & Zaid crops</div>
+              <div class="alert-box alert-info" data-i18n="live_prices_tip_html">💹 <strong>Mandi Prices</strong><br>Live prices for your district</div>
+              <div class="alert-box alert-warning" data-i18n="weather_tip_html">🌦️ <strong>Weather</strong><br>72-hr forecast with crop advisories</div>
+              <div class="alert-box alert-earth" data-i18n="orders_tip_html">📦 <strong>Orders</strong><br><span id="overviewOrderCount">—</span> order(s) placed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Profile -->
+        <div class="profile-panel" id="panel-edit">
+          <div class="panel-card">
+            <h3>✏️ <span data-i18n="edit_profile">Edit Profile</span></h3>
+            <div class="error-box"   id="editError"></div>
+            <div class="success-box" id="editSuccess"></div>
+
+            <!-- Avatar upload -->
+            <div class="input-group" style="text-align:center;">
+              <div id="editAvatarPreview" style="margin-bottom:8px;"></div>
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;display:inline-flex;width:auto;">
+                📷 <span data-i18n="upload_photo">Upload Photo</span>
+                <input type="file" id="avatarFile" accept="image/*" style="display:none;" onchange="previewAvatar(this)" />
+              </label>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label data-i18n="full_name">Full Name</label>
+                <input type="text" id="editName" />
+              </div>
+              <div class="input-group">
+                <label data-i18n="phone_number">Phone</label>
+                <input type="tel" id="editPhone" data-i18n-ph="store_phone_placeholder" placeholder="10-digit" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label data-i18n="district_opt">District</label>
+              <select id="editDistrict">
+                <option value="">— Select —</option>
+                <option>Agra</option><option>Aligarh</option><option>Allahabad</option>
+                <option>Ambedkar Nagar</option><option>Amethi</option><option>Amroha</option>
+                <option>Auraiya</option><option>Azamgarh</option><option>Baghpat</option>
+                <option>Bahraich</option><option>Ballia</option><option>Balrampur</option>
+                <option>Banda</option><option>Barabanki</option><option>Bareilly</option>
+                <option>Basti</option><option>Bhadohi</option><option>Bijnor</option>
+                <option>Budaun</option><option>Bulandshahr</option><option>Chandauli</option>
+                <option>Chitrakoot</option><option>Deoria</option><option>Etah</option>
+                <option>Etawah</option><option>Faizabad</option><option>Farrukhabad</option>
+                <option>Fatehpur</option><option>Firozabad</option><option>Gautam Buddha Nagar</option>
+                <option>Ghaziabad</option><option>Ghazipur</option><option>Gonda</option>
+                <option>Gorakhpur</option><option>Hamirpur</option><option>Hapur</option>
+                <option>Hardoi</option><option>Hathras</option><option>Jalaun</option>
+                <option>Jaunpur</option><option>Jhansi</option><option>Kannauj</option>
+                <option>Kanpur Dehat</option><option>Kanpur Nagar</option><option>Kasganj</option>
+                <option>Kaushambi</option><option>Kheri</option><option>Kushinagar</option>
+                <option>Lalitpur</option><option>Lucknow</option><option>Maharajganj</option>
+                <option>Mahoba</option><option>Mainpuri</option><option>Mathura</option>
+                <option>Mau</option><option>Meerut</option><option>Mirzapur</option>
+                <option>Moradabad</option><option>Muzaffarnagar</option><option>Pilibhit</option>
+                <option>Pratapgarh</option><option>Raebareli</option><option>Rampur</option>
+                <option>Saharanpur</option><option>Sambhal</option><option>Sant Kabir Nagar</option>
+                <option>Shahjahanpur</option><option>Shamli</option><option>Shrawasti</option>
+                <option>Siddharthnagar</option><option>Sitapur</option><option>Sonbhadra</option>
+                <option>Sultanpur</option><option>Unnao</option><option>Varanasi</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveProfile()" id="saveProfileBtn">
+              💾 <span data-i18n="save_changes">Save Changes</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Orders -->
+        <div class="profile-panel" id="panel-orders">
+          <div class="panel-card">
+            <h3>📦 <span data-i18n="my_orders">My Orders</span></h3>
+            <div id="ordersList"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="profile-panel" id="panel-password">
+          <div class="panel-card">
+            <h3>🔒 <span data-i18n="change_password">Change Password</span></h3>
+            <div class="error-box"   id="pwError"></div>
+            <div class="success-box" id="pwSuccess"></div>
+            <div class="input-group">
+              <label data-i18n="current_password">Current Password</label>
+              <input type="password" id="curPwInput" data-i18n-ph="current_password" placeholder="Current password" />
+            </div>
+            <div class="input-group">
+              <label data-i18n="new_password">New Password</label>
+              <input type="password" id="newPwInput" data-i18n-ph="new_password" placeholder="New password (min 6 chars)" />
+            </div>
+            <div class="input-group">
+              <label data-i18n="confirm_password">Confirm New Password</label>
+              <input type="password" id="confPwInput" data-i18n-ph="confirm_password" placeholder="Confirm new password" />
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()">🔒 <span data-i18n="save_changes">Save Changes</span></button>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="profile-panel" id="panel-settings">
+          <div class="panel-card">
+            <h3 data-i18n="settings">⚙️ Settings</h3>
+            <div class="input-group">
+              <label>🌐 <span data-i18n="language">Language</span></label>
+              <div class="lang-toggle-group">
+                <button class="lang-toggle-btn-lg" id="set-en" onclick="setLang('en')">🇬🇧 English</button>
+                <button class="lang-toggle-btn-lg" id="set-hi" onclick="setLang('hi')">🇮🇳 हिंदी</button>
+              </div>
+            </div>
+            <div class="alert-box alert-success mt-2" data-i18n="saved_lang_tip">
+              💡 Language preference is saved to your account and remembered on every device.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // ── Require login ──
+    if (!localStorage.getItem('ks_token')) { window.location.href = 'login.html'; }
+
+    let currentUser = null;
+
+    async function loadProfile() {
+      try {
+        const res  = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('ks_token') } });
+        const data = await res.json();
+        if (!data.success) { localStorage.removeItem('ks_token'); window.location.href = 'login.html'; return; }
+        currentUser = data.user;
+        localStorage.setItem('ks_user', JSON.stringify(data.user));
+        populateSidebar(data.user);
+        populateEditForm(data.user);
+        translateDistrictSelect();
+        loadOrders();
+        Auth.updateNav();
+        // Init lang buttons
+        const lang = data.user.lang || localStorage.getItem('ks_lang') || 'en';
+        document.getElementById('set-en').classList.toggle('active', lang === 'en');
+        document.getElementById('set-hi').classList.toggle('active', lang === 'hi');
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    function populateSidebar(u) {
+      document.getElementById('sidebarName').textContent    = u.name;
+      document.getElementById('sidebarEmail').textContent   = u.email;
+      const currentLang = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en';
+      const locale = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+      const districtName = u.district ? Lang.t(u.district) : '';
+      document.getElementById('sidebarDistrict').textContent = u.district ? '📍 ' + districtName + ', UP' : '';
+      document.getElementById('sidebarRole').textContent    = u.role === 'admin' ? Lang.t('role_admin') : Lang.t('role_farmer');
+      document.getElementById('sidebarJoined').textContent  = u.created_at ? new Date(u.created_at).toLocaleDateString(locale,{year:'numeric',month:'short'}) : '—';
+      document.getElementById('sidebarLastLogin').textContent = u.last_login ? new Date(u.last_login).toLocaleDateString(locale,{year:'numeric',month:'short',day:'numeric'}) : '—';
+
+      // Avatar
+      const avatarArea = document.getElementById('avatarArea');
+      if (u.avatar_path) {
+        avatarArea.innerHTML = `<img src="${u.avatar_path}" class="avatar-img" alt="Avatar" /><button class="avatar-edit" onclick="document.getElementById('avatarFile').click()">✏️</button>`;
+      } else {
+        const initials = u.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        document.getElementById('avatarInitials').textContent = initials;
+      }
+      const editPreview = document.getElementById('editAvatarPreview');
+      if (u.avatar_path) editPreview.innerHTML = `<img src="${u.avatar_path}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--green-400);" />`;
+    }
+
+    function populateEditForm(u) {
+      document.getElementById('editName').value    = u.name || '';
+      document.getElementById('editPhone').value   = u.phone || '';
+      document.getElementById('editDistrict').value = u.district || '';
+    }
+
+    async function loadOrders() {
+      const list = document.getElementById('ordersList');
+      try {
+        const res  = await fetch('/api/orders', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('ks_token') } });
+        const data = await res.json();
+        if (!data.success || !data.orders.length) {
+          list.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--neutral-400);">
+            <div style="font-size:2.5rem;margin-bottom:10px;">📭</div>
+            <p>${Lang.t('no_orders_yet_html')}</p></div>`;
+          document.getElementById('overviewOrderCount').textContent = '0';
+          return;
+        }
+        document.getElementById('overviewOrderCount').textContent = data.orders.length;
+        const currentLang = typeof Lang !== 'undefined' ? Lang.getCurrent() : 'en';
+        const locale = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+        list.innerHTML = data.orders.map(o => {
+          const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+          const status = o.status || 'pending';
+          const statusClass = 'status-' + status;
+          const translatedStatus = Lang.t(status);
+          const translatedItems = Array.isArray(items) ? items.map(i => {
+            const itemName = i.name || i;
+            return Lang.t(itemName);
+          }).join(', ') : Lang.t(items);
+
+          return `<div class="order-card">
+            <div class="order-header">
+              <div class="order-id">${Lang.t('order_label')} #${o.id}</div>
+              <span class="status-badge ${statusClass}">${translatedStatus.toUpperCase()}</span>
+            </div>
+            <div class="order-items">🛒 ${translatedItems}</div>
+            <div class="order-total">💰 ${Lang.t('total_label')} ₹${parseFloat(o.total).toLocaleString(locale)}</div>
+            <div class="order-date" style="margin-top:6px;">📅 ${new Date(o.created_at).toLocaleDateString(locale,{year:'numeric',month:'short',day:'numeric'})}</div>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        list.innerHTML = `<p class="text-muted">${Lang.t('could_not_load_orders')}</p>`;
+      }
+    }
+
+    function previewAvatar(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('editAvatarPreview').innerHTML = `<img src="${e.target.result}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--green-400);" />`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function translateDistrictSelect() {
+      const select = document.getElementById('editDistrict');
+      if (!select) return;
+      const firstOpt = select.options[0];
+      if (firstOpt) {
+        firstOpt.textContent = Lang.t('select');
+      }
+      for (let i = 1; i < select.options.length; i++) {
+        const opt = select.options[i];
+        const key = opt.value || opt.textContent;
+        opt.textContent = Lang.t(key);
+      }
+    }
+
+    async function saveProfile() {
+      const name     = document.getElementById('editName').value.trim();
+      const phone    = document.getElementById('editPhone').value.trim();
+      const district = document.getElementById('editDistrict').value;
+      const file     = document.getElementById('avatarFile').files[0];
+      if (!name) { showMsg('editError', Lang.t('name_required')); return; }
+
+      const btn = document.getElementById('saveProfileBtn');
+      btn.disabled = true; btn.textContent = Lang.t('saving');
+
+      const fd = new FormData();
+      fd.append('name', name);
+      if (phone)    fd.append('phone', phone);
+      if (district) fd.append('district', district);
+      if (file)     fd.append('avatar', file);
+
+      try {
+        const res  = await fetch('/api/auth/profile', { method:'PATCH', headers:{'Authorization':'Bearer '+localStorage.getItem('ks_token')}, body:fd });
+        const data = await res.json();
+        if (!data.success) { showMsg('editError', Lang.t(data.error) || data.error); return; }
+        localStorage.setItem('ks_user', JSON.stringify(data.user));
+        currentUser = data.user;
+        populateSidebar(data.user);
+        Auth.updateNav();
+        showMsg('editSuccess', Lang.t('profile_updated'));
+      } catch(e) { showMsg('editError', 'Error: ' + e.message); }
+      btn.disabled = false;
+      btn.innerHTML = '💾 <span data-i18n="save_changes">Save Changes</span>';
+      if (typeof Lang !== 'undefined') Lang.apply(Lang.getCurrent());
+    }
+
+    async function changePassword() {
+      const cur  = document.getElementById('curPwInput').value;
+      const nw   = document.getElementById('newPwInput').value;
+      const conf = document.getElementById('confPwInput').value;
+      if (!cur || !nw || !conf) { showMsg('pwError', Lang.t('all_fields_required')); return; }
+      if (nw.length < 6) { showMsg('pwError', Lang.t('pw_min_length')); return; }
+      if (nw !== conf)   { showMsg('pwError', Lang.t('pw_no_match')); return; }
+
+      try {
+        const fd = new FormData();
+        fd.append('currentPassword', cur);
+        fd.append('newPassword', nw);
+        const res  = await fetch('/api/auth/profile', { method:'PATCH', headers:{'Authorization':'Bearer '+localStorage.getItem('ks_token')}, body:fd });
+        const data = await res.json();
+        if (!data.success) { showMsg('pwError', data.error); return; }
+        showMsg('pwSuccess', Lang.t('pw_changed_success'));
+        document.getElementById('curPwInput').value = document.getElementById('newPwInput').value = document.getElementById('confPwInput').value = '';
+      } catch(e) { showMsg('pwError', 'Error: ' + e.message); }
+    }
+
+    function setLang(lang) {
+      Lang.set(lang);
+      document.getElementById('set-en').classList.toggle('active', lang === 'en');
+      document.getElementById('set-hi').classList.toggle('active', lang === 'hi');
+      Auth.updateNav();
+    }
+
+    function showMsg(errId, msg) {
+      const isError = errId.includes('Error') || errId.includes('pw');
+      const type = errId.endsWith('Error') || errId === 'pwError' ? 'error' : 'success';
+      document.getElementById(errId).textContent = msg;
+      document.getElementById(errId).style.display = 'block';
+    }
+
+    function showPanel(name, btn) {
+      document.querySelectorAll('.profile-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function doLogout() {
+      if (!confirm(typeof Lang !== 'undefined' ? Lang.t('logout_confirm') : 'Logout?')) return;
+      localStorage.removeItem('ks_token'); localStorage.removeItem('ks_user');
+      window.location.href = 'login.html';
+    }
+
+    // Init
+    loadProfile();
+    Auth.updateNav();
+  </script>
+</body>
+</html>

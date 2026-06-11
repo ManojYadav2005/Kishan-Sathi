@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Kishan Sathi — किसान साथी</title>
+  <meta name="description" content="Login to your Kishan Sathi account to access weather forecasts, mandi prices, crop planning, and more." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      min-height: 100vh;
+      background: linear-gradient(160deg, #041A11 0%, #0B3D2E 35%, #145A3C 65%, #1A7A52 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Animated background orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    body::before {
+      width: 400px; height: 400px;
+      top: -100px; right: -100px;
+      background: radial-gradient(circle, rgba(245,197,66,.12) 0%, transparent 70%);
+      animation: float 8s ease-in-out infinite;
+    }
+    body::after {
+      width: 300px; height: 300px;
+      bottom: -80px; left: -80px;
+      background: radial-gradient(circle, rgba(62,217,141,.1) 0%, transparent 70%);
+      animation: float 10s ease-in-out infinite reverse;
+    }
+
+    .auth-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-2xl);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,.1);
+      padding: 52px 44px;
+      width: 100%;
+      max-width: 460px;
+      animation: slideUp .5s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+      z-index: 1;
+    }
+    @media(max-width:480px) { .auth-card { padding: 36px 24px; border-radius: var(--radius-xl); } }
+
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(30px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .auth-brand .logo-icon {
+      font-size: 3.2rem;
+      display: block;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.1));
+    }
+    .auth-brand h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--green-800);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .auth-brand p {
+      font-size: 0.92rem;
+      color: var(--neutral-400);
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .lang-btn {
+      padding: 8px 22px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--green-200);
+      background: var(--green-50);
+      color: var(--green-700);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-body);
+    }
+    .lang-btn:hover { border-color: var(--green-400); background: var(--green-100); }
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--green-700), var(--green-600));
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(26,122,82,.3);
+    }
+
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.87rem;
+      color: var(--neutral-600);
+      margin-bottom: 7px;
+    }
+    .field input {
+      width: 100%;
+      padding: 13px 18px;
+      border: 2px solid var(--neutral-200);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-family: var(--font-body);
+      transition: var(--transition);
+      outline: none;
+      color: var(--neutral-800);
+      background: var(--neutral-50);
+    }
+    .field input:focus {
+      border-color: var(--green-500);
+      box-shadow: 0 0 0 4px rgba(34,167,106,.1);
+      background: var(--white);
+    }
+    .field input::placeholder { color: var(--neutral-400); }
+
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 48px; }
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--neutral-400);
+      padding: 0;
+      transition: var(--transition-fast);
+    }
+    .eye-btn:hover { color: var(--neutral-600); }
+
+    .alert {
+      padding: 13px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      display: none;
+      font-weight: 500;
+      animation: fadeInUp .2s ease;
+    }
+    .alert-error   { background: #FEF2F2; border: 1.5px solid #FCA5A5; color: #B91C1C; }
+    .alert-success { background: var(--green-50); border: 1.5px solid var(--green-300); color: var(--green-800); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 52px;
+      box-shadow: 0 4px 16px rgba(26,122,82,.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(26,122,82,.4);
+    }
+    .btn-primary:hover::after { opacity: 1; }
+    .btn-primary:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-primary.loading .btn-label { display: none; }
+    .btn-primary.loading .spinner   { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.9rem;
+      color: var(--neutral-400);
+    }
+    .auth-footer a {
+      color: var(--green-600);
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+    .auth-footer a:hover { color: var(--green-500); text-decoration: underline; }
+
+    .forgot-link {
+      text-align: right;
+      margin-bottom: 22px;
+    }
+    .forgot-link a {
+      font-size: 0.83rem;
+      color: var(--neutral-400);
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+    .forgot-link a:hover { color: var(--green-600); }
+
+    .divider {
+      text-align: center;
+      color: var(--neutral-300);
+      font-size: 0.85rem;
+      margin: 22px 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--neutral-200);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div class="lang-switch">
+      <button class="lang-btn" id="lb-en" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="lb-hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+
+    <div class="auth-brand">
+      <span class="logo-icon">🚜</span>
+      <h1 data-i18n="login_title">Welcome Back</h1>
+      <p data-i18n="login_sub">Login to your Kishan Sathi account</p>
+    </div>
+
+    <div class="alert alert-error"   id="alertError"></div>
+    <div class="alert alert-success" id="alertSuccess"></div>
+
+    <div class="field">
+      <label>📧 <span data-i18n="email">Email Address</span></label>
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" />
+    </div>
+
+    <div class="field">
+      <label>🔒 <span data-i18n="password">Password</span></label>
+      <div class="pw-wrap">
+        <input type="password" id="passwordInput" placeholder="Enter your password" autocomplete="current-password" />
+        <button class="eye-btn" type="button" onclick="togglePw('passwordInput', this)">👁️</button>
+      </div>
+    </div>
+
+    <div class="forgot-link">
+      <a href="forgot-password.html">Forgot Password?</a>
+    </div>
+
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">
+      <span class="btn-label" data-i18n="login_btn">🔑 Login</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="divider">or</div>
+
+    <div class="auth-footer">
+      <span data-i18n="no_account">Don't have an account?</span>
+      <a href="register.html" data-i18n="register_link"> Register here</a>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    const curLang = localStorage.getItem('ks_lang') || 'en';
+    document.getElementById('lb-' + curLang)?.classList.add('active');
+    if (typeof Lang !== 'undefined') Lang.apply(curLang);
+
+    if (localStorage.getItem('ks_token')) window.location.href = 'index.html';
+
+    function setLang(lang) {
+      localStorage.setItem('ks_lang', lang);
+      if (typeof Lang !== 'undefined') Lang.apply(lang);
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('lb-' + lang)?.classList.add('active');
+    }
+
+    function togglePw(id, btn) {
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+      btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function showAlert(type, msg) {
+      document.getElementById('alertError').style.display   = 'none';
+      document.getElementById('alertSuccess').style.display = 'none';
+      const el = document.getElementById(type === 'error' ? 'alertError' : 'alertSuccess');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function doLogin() {
+      const email    = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+
+      if (!email || !password) {
+        showAlert('error', 'Email and password are required. / ईमेल और पासवर्ड आवश्यक हैं।');
+        return;
+      }
+
+      const btn = document.getElementById('loginBtn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      try {
+        const user = await Auth.login({ email, password });
+        showAlert('success', '✅ Welcome back, ' + user.name + '! Redirecting…');
+        setTimeout(() => window.location.href = 'index.html', 900);
+      } catch (err) {
+        const msg = err.message || '';
+        if (msg.toLowerCase().includes('no account') || msg.toLowerCase().includes('not found')) {
+          showAlert('error', '❌ No account found with this email. Please register first.');
+        } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('incorrect')) {
+          showAlert('error', '❌ Incorrect password. Please try again. / गलत पासवर्ड।');
+        } else {
+          showAlert('error', '❌ ' + (msg || 'Login failed. Please try again.'));
+        }
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>

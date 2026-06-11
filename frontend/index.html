@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kishan Sathi | किसान साथी — Smart Farming Companion</title>
+  <meta name="description" content="Kishan Sathi — India's smartest farming companion. Real-time weather, live mandi prices, crop planning, and agri education for UP farmers." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Hero Section — Immersive Full-Screen ── */
+    .hero {
+      min-height: 540px;
+      background: linear-gradient(160deg, #041A11 0%, #0B3D2E 30%, #145A3C 60%, #1A7A52 100%);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(245,197,66,.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(62,217,141,.1) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Cpath d='M0 0h80v80H0z'/%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(to top, var(--neutral-50), transparent);
+      z-index: 2;
+    }
+
+    /* Floating decorative elements */
+    .hero-decor {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.08;
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .hero-decor:nth-child(1) { top: 15%; left: 8%; animation-delay: 0s; font-size: 4rem; }
+    .hero-decor:nth-child(2) { top: 60%; right: 10%; animation-delay: 1.5s; }
+    .hero-decor:nth-child(3) { bottom: 20%; left: 25%; animation-delay: 3s; font-size: 2.5rem; }
+    .hero-decor:nth-child(4) { top: 25%; right: 25%; animation-delay: 4.5s; font-size: 3.5rem; }
+
+    .hero-inner {
+      position: relative;
+      z-index: 3;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 52px;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; padding: 52px 20px; }
+      .hero-cta { justify-content: center; }
+    }
+
+    .hero-text h1 {
+      font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+      color: var(--white);
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .hero-text h1 span {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-300));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-text p {
+      color: rgba(255,255,255,.78);
+      margin: 20px 0 36px;
+      font-size: 1.12rem;
+      max-width: 500px;
+      line-height: 1.7;
+    }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-cta .btn { font-size: 1.05rem; padding: 16px 32px; }
+
+    /* ── Stats — Glassmorphism Cards ── */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius-xl);
+      padding: 24px 20px;
+      text-align: center;
+      color: white;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold-400), var(--green-400));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .stat-box:hover {
+      background: rgba(255,255,255,.12);
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,.2);
+    }
+    .stat-box:hover::before { opacity: 1; }
+    .stat-box .stat-num {
+      font-size: 2.2rem;
+      font-weight: 900;
+      font-family: var(--font-display);
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-300));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-box .stat-label { font-size: .85rem; opacity: .75; margin-top: 6px; font-weight: 500; }
+
+    /* ── News Ticker ── */
+    .ticker-wrap {
+      background: linear-gradient(90deg, var(--green-900), #0A3020);
+      color: var(--green-300);
+      padding: 12px 24px;
+      font-size: .87rem;
+      display: flex; align-items: center; gap: 18px;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .ticker-label {
+      background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      white-space: nowrap;
+      font-family: var(--font-display);
+      letter-spacing: 0.02em;
+    }
+    .ticker-text { white-space: nowrap; animation: marquee 28s linear infinite; }
+    @keyframes marquee { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+    /* ── Feature Cards — Premium Grid ── */
+    .features {
+      padding: 72px 24px;
+      background: var(--white);
+      position: relative;
+    }
+    .features-inner { max-width: 1200px; margin: 0 auto; }
+
+    .feature-card {
+      background: var(--white);
+      border: 1.5px solid var(--neutral-100);
+      border-radius: var(--radius-xl);
+      padding: 32px 24px;
+      text-align: center;
+      transition: var(--transition);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green-500), var(--green-400));
+      transform: scaleX(0);
+      transition: transform .3s ease;
+      transform-origin: left;
+    }
+    .feature-card:hover {
+      background: var(--white);
+      border-color: var(--green-300);
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--green-200);
+      transform: translateY(-6px);
+      color: inherit;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-icon {
+      width: 68px; height: 68px;
+      background: linear-gradient(135deg, var(--green-50), var(--green-100));
+      border-radius: var(--radius-xl);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 18px;
+      border: 1.5px solid var(--green-200);
+      transition: var(--transition);
+    }
+    .feature-card:hover .feature-icon {
+      background: linear-gradient(135deg, var(--green-100), var(--green-200));
+      transform: scale(1.08);
+      box-shadow: 0 0 20px rgba(34,167,106,.15);
+    }
+    .feature-card h3 {
+      color: var(--neutral-900);
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .feature-card p  {
+      color: var(--neutral-400);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    /* ── Govt Schemes Strip ── */
+    .schemes-strip {
+      background: linear-gradient(135deg, var(--gold-50), var(--gold-100));
+      border-top: 3px solid var(--gold-400);
+      padding: 36px 24px;
+      position: relative;
+    }
+    .schemes-inner { max-width: 1200px; margin: 0 auto; }
+    .scheme-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+    .scheme-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      background: var(--white);
+      border: 1.5px solid var(--gold-300);
+      border-radius: var(--radius-full);
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--earth-700);
+      text-decoration: none;
+      transition: var(--transition);
+      box-shadow: var(--shadow-xs);
+    }
+    .scheme-link:hover {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-300));
+      color: var(--neutral-900);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--gold-400);
+    }
+
+    /* ── Trust Bar ── */
+    .trust-bar {
+      background: var(--neutral-50);
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .trust-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .95rem;
+      color: var(--neutral-600);
+      font-weight: 500;
+    }
+    .trust-item .trust-icon {
+      width: 40px; height: 40px;
+      background: var(--green-100);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Decorative Elements -->
+  <section class="hero">
+    <span class="hero-decor">🌾</span>
+    <span class="hero-decor">🚜</span>
+    <span class="hero-decor">🌱</span>
+    <span class="hero-decor">☀️</span>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 data-i18n="hero_title_html">आपका <span>स्मार्ट</span><br>Farming Companion</h1>
+        <p data-i18n="hero_sub">Real-time weather, live mandi prices, crop planning, and agri education — everything a modern farmer needs.</p>
+        <div class="hero-cta">
+          <a href="crop-planner.html" class="btn btn-gold btn-lg">🗓️ <span data-i18n="hero_cta1">Plan Your Crop</span></a>
+          <a href="market-price.html" class="btn btn-lg" style="color:white;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);backdrop-filter:blur(8px);">💹 <span data-i18n="hero_cta2">Live Prices</span></a>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-box">
+          <div class="stat-num">75+</div>
+          <div class="stat-label" data-i18n="stat1">UP Districts Covered</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">40+</div>
+          <div class="stat-label" data-i18n="stat2">Agri Products in Store</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">9</div>
+          <div class="stat-label" data-i18n="stat3">Smart Tools</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" data-i18n="Free">Free</div>
+          <div class="stat-label" data-i18n="stat4">Always & Forever</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <span class="ticker-label" data-i18n="updates_label">📢 Updates:</span>
+    <span class="ticker-text" data-i18n="updates_marquee">PM-Kisan installment for 2025 released &nbsp;|&nbsp; Wheat MSP increased to ₹2,425/qtl &nbsp;|&nbsp; Kharif season advisory issued for UP &nbsp;|&nbsp; New Soil Health Card registrations open &nbsp;|&nbsp; eNAM platform adds 10 new mandis in UP</span>
+  </div>
+
+  <!-- Trust Bar -->
+  <div class="trust-bar">
+    <div class="trust-inner">
+      <div class="trust-item">
+        <div class="trust-icon">🔒</div>
+        <span>Secure & Private</span>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🌐</div>
+        <span>Hindi + English</span>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">📱</div>
+        <span>Mobile Friendly</span>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🎙️</div>
+        <span>Voice Assistant</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Grid -->
+  <section class="features">
+    <div class="features-inner">
+      <div class="section-heading">
+        <h2 data-i18n="features_title">🌾 Everything You Need to Farm Smarter</h2>
+        <p data-i18n="features_sub">Designed specifically for Uttar Pradesh farmers</p>
+      </div>
+      <div class="grid-auto">
+        <a href="crop-planner.html" class="feature-card">
+          <div class="feature-icon">🗓️</div>
+          <h3 data-i18n="nav_crop">Crop Planner</h3>
+          <p data-i18n="feat_crop_desc">Season-wise recommendations with seeds, irrigation & cost info</p>
+        </a>
+        <a href="weather.html" class="feature-card">
+          <div class="feature-icon">🌦️</div>
+          <h3 data-i18n="nav_weather">Weather Forecast</h3>
+          <p data-i18n="feat_weather_desc">72-hour hourly forecast with crop-specific alerts for any district</p>
+        </a>
+        <a href="market-price.html" class="feature-card">
+          <div class="feature-icon">💹</div>
+          <h3 data-i18n="nav_market">Mandi Prices</h3>
+          <p data-i18n="feat_market_desc">Live prices from government API for all UP mandis and commodities</p>
+        </a>
+        <a href="education.html" class="feature-card">
+          <div class="feature-icon">📚</div>
+          <h3 data-i18n="nav_education">Education Hub</h3>
+          <p data-i18n="feat_education_desc">Step-by-step crop guides and farming tutorial videos</p>
+        </a>
+        <a href="store.html" class="feature-card">
+          <div class="feature-icon">🛒</div>
+          <h3 data-i18n="nav_store">Agri Store</h3>
+          <p data-i18n="feat_store_desc">Seeds, fertilizers, pesticides & tools with local offline store finder</p>
+        </a>
+        <a href="chat.html" class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3 data-i18n="nav_community">Farmer Forum</h3>
+          <p data-i18n="feat_forum_desc">Ask questions, share tips, and learn from fellow farmers</p>
+        </a>
+        <a href="comparison.html" class="feature-card">
+          <div class="feature-icon">⚖️</div>
+          <h3 data-i18n="nav_compare">Organic vs Chemical</h3>
+          <p data-i18n="feat_compare_desc">Compare inputs, yields, and long-term effects for better decisions</p>
+        </a>
+        <a href="loan-calculator.html" class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h3 data-i18n="nav_loan">Loan Calculator</h3>
+          <p data-i18n="feat_loan_desc">Plan EMI, total repayment, and visualize your farming loans</p>
+        </a>
+        <a href="ploughing-services.html" class="feature-card">
+          <div class="feature-icon">🚜</div>
+          <h3 data-i18n="nav_ploughing">Ploughing Services</h3>
+          <p data-i18n="feat_ploughing_desc">Find or list tractor operators with per-bigha rates in your area</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Government Schemes -->
+  <section class="schemes-strip">
+    <div class="schemes-inner">
+      <h3 class="text-green" style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;" data-i18n="govt_schemes_title">🏛️ Government Schemes for Farmers</h3>
+      <p class="text-muted mt-1" data-i18n="govt_schemes_sub">Access these official portals to claim your benefits</p>
+      <div class="scheme-links">
+        <a href="https://pmkisan.gov.in" target="_blank" class="scheme-link">🌾 PM-Kisan</a>
+        <a href="https://pmfby.gov.in" target="_blank" class="scheme-link">🌧️ Fasal Bima</a>
+        <a href="https://enam.gov.in" target="_blank" class="scheme-link">🛒 eNAM</a>
+        <a href="https://agmarknet.gov.in" target="_blank" class="scheme-link">📈 Agmarknet</a>
+        <a href="https://soilhealth.dac.gov.in" target="_blank" class="scheme-link">🧪 Soil Health Card</a>
+        <a href="https://mkisan.gov.in" target="_blank" class="scheme-link">📱 mKisan</a>
+      </div>
+    </div>
+  </section>
+
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+</body>
+</html>

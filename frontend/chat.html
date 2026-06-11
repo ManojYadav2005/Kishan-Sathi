@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Forum | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .forum-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width:860px){ .forum-layout { grid-template-columns: 1fr; } }
+
+    .post-form {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md); padding: 28px; margin-bottom: 32px;
+      border: 1px solid var(--neutral-100);
+    }
+    .post-form h3 { color: var(--green-800); margin-bottom: 20px; font-size: 1.2rem; font-family: var(--font-display); }
+
+    .post-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      padding: 22px 24px; box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--green-500); margin-bottom: 16px;
+      animation: fadeUp .3s ease; transition: var(--transition);
+      border: 1px solid var(--neutral-100); border-left: 4px solid var(--green-500);
+    }
+    .post-card:hover { box-shadow: var(--shadow-md); transform: translateX(4px); }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .post-card h4 { color: var(--green-700); margin-bottom: 8px; font-size: 1.05rem; font-family: var(--font-display); }
+    .post-card .post-body { color: var(--neutral-700); line-height: 1.7; }
+    .post-meta { display:flex; gap:14px; font-size:.8rem; color:var(--neutral-400); margin-top:12px; flex-wrap:wrap; }
+    .post-meta span { display:flex; align-items:center; gap:5px; }
+
+    /* Like button */
+    .like-btn {
+      background: none; border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius-full); padding: 5px 14px;
+      font-size: .8rem; cursor: pointer; transition: var(--transition);
+      font-family: var(--font-body); color: var(--neutral-600);
+    }
+    .like-btn:hover, .like-btn.liked { background: var(--green-50); border-color: var(--green-400); color: var(--green-600); transform: scale(1.05); }
+
+    .sidebar-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm); padding: 22px; margin-bottom: 18px;
+      border: 1px solid var(--neutral-100);
+    }
+    .sidebar-card h4 { color: var(--green-800); margin-bottom: 16px; font-size: 1rem; border-bottom: 2px solid var(--green-100); padding-bottom: 10px; font-family: var(--font-display); }
+    .topic-chip {
+      display: inline-block; margin: 4px;
+      padding: 6px 14px; border-radius: var(--radius-full);
+      background: var(--green-50); border: 1px solid var(--green-200);
+      font-size: .82rem; color: var(--green-700); cursor: pointer;
+      transition: var(--transition);
+    }
+    .topic-chip:hover { background: var(--green-100); transform: translateY(-1px); }
+
+    .empty-forum { text-align:center; padding:60px 24px; color:var(--neutral-400); }
+    .empty-forum .icon { font-size:3.5rem; margin-bottom:14px; }
+
+    .search-posts { margin-bottom: 18px; }
+    .search-posts input { width:100%; padding:12px 16px; border:1.5px solid var(--neutral-200); border-radius:var(--radius-lg); font-size:.95rem; outline:none; transition: var(--transition); }
+    .search-posts input:focus { border-color:var(--green-400); box-shadow: 0 0 0 4px rgba(34,167,106,.08); }
+
+    .sort-row { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+    .sort-chip { padding:7px 16px; border-radius:var(--radius-full); border:1.5px solid var(--neutral-200); background:var(--white); font-size:.83rem; cursor:pointer; transition:var(--transition); font-family:var(--font-body); }
+    .sort-chip:hover { border-color: var(--green-300); background: var(--green-50); }
+    .sort-chip.active { background:linear-gradient(135deg, var(--green-700), var(--green-500)); color:white; border-color:transparent; box-shadow: 0 4px 12px rgba(26,122,82,.25); }
+
+    .comments-section {
+      margin-top: 18px;
+      border-top: 1.5px solid var(--neutral-100);
+      padding-top: 16px;
+    }
+    .comments-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green-800);
+      margin-bottom: 10px;
+    }
+    .comments-list {
+      margin-bottom: 14px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .comment-item {
+      background: var(--neutral-50);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      border-left: 3px solid var(--green-400);
+      transition: var(--transition-fast);
+    }
+    .comment-item:hover { background: var(--green-50); }
+    .comment-meta {
+      font-size: 0.75rem;
+      color: var(--neutral-500);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .comment-body {
+      color: var(--neutral-800);
+      line-height: 1.45;
+    }
+    .comment-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .comment-form input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .comment-form input:focus {
+      border-color: var(--green-400);
+      box-shadow: 0 0 0 3px rgba(34,167,106,.08);
+    }
+    .comment-form button {
+      padding: 7px 16px;
+      font-size: 0.82rem;
+      border-radius: var(--radius-md);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A2F 0%,#0A3D4E 40%,#0C5C5A 70%,#1A7A52 100%);">
+    <h1 data-i18n="forum_title">💬 Farmer Community Forum</h1>
+    <p data-i18n="Ask questions, share tips, and connect with fellow Kishan Sathi users across UP">Ask questions, share tips, and connect with fellow Kishan Sathi users across UP</p>
+  </div>
+
+  <div class="container section">
+    <div class="forum-layout">
+
+      <!-- Main Column -->
+      <div>
+        <!-- Post Form -->
+        <div class="post-form">
+          <h3 data-i18n="new_discussion">✍️ Start a New Discussion</h3>
+          <div class="input-group">
+            <label for="postUser" data-i18n="your_name_opt">Your Name (optional)</label>
+            <input type="text" id="postUser" placeholder="Anonymous Farmer" data-i18n-ph="Anonymous Farmer" />
+          </div>
+          <div class="input-group">
+            <label for="postTitle" data-i18n="Discussion Title *">Discussion Title *</label>
+            <input type="text" id="postTitle" placeholder="e.g. Best wheat variety for sandy soil?" />
+          </div>
+          <div class="input-group">
+            <label for="postMessage" data-i18n="Your Message *">Your Message *</label>
+            <textarea id="postMessage" rows="4" placeholder="Share your question, tip, or experience…"></textarea>
+          </div>
+          <div class="input-group">
+            <label for="postTopic" data-i18n="topic">Topic</label>
+            <select id="postTopic">
+              <option value="General" data-i18n="General">General</option>
+              <option value="Crop Disease" data-i18n="Crop Disease">Crop Disease</option>
+              <option value="Market Prices" data-i18n="Market Prices">Market Prices</option>
+              <option value="Weather" data-i18n="Weather">Weather</option>
+              <option value="Fertilizers" data-i18n="Fertilizers">Fertilizers</option>
+              <option value="Seeds" data-i18n="Seeds">Seeds</option>
+              <option value="Government Schemes" data-i18n="Government Schemes">Government Schemes</option>
+              <option value="Irrigation" data-i18n="Irrigation">Irrigation</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="addPost()" data-i18n="post_btn">📤 Post Discussion</button>
+        </div>
+
+        <!-- Posts List -->
+        <div class="search-posts">
+          <input type="text" id="searchPosts" placeholder="🔎 Search discussions…" data-i18n-ph="search_disc" oninput="renderPosts()" />
+        </div>
+        <div class="sort-row">
+          <button class="sort-chip active" id="sort-newest" onclick="setSortMode('newest',this)" data-i18n="newest">🕐 Newest</button>
+          <button class="sort-chip" id="sort-popular" onclick="setSortMode('popular',this)" data-i18n="most_liked">🔥 Most Liked</button>
+        </div>
+
+        <h3 style="color:var(--green-800);margin-bottom:16px;"><span data-i18n="Community Discussions">Community Discussions</span> <span id="postCount" class="badge badge-green"></span></h3>
+        <div id="postsContainer"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div class="sidebar-card">
+          <h4 data-i18n="🏷️ Browse by Topic">🏷️ Browse by Topic</h4>
+          <div id="topicFilters"></div>
+        </div>
+
+        <div class="sidebar-card">
+          <h4 data-i18n="📊 Forum Stats">📊 Forum Stats</h4>
+          <div style="font-size:.9rem;line-height:2;">
+            <div><span data-i18n="📝 Total Posts:">📝 Total Posts:</span> <strong id="totalPosts">0</strong></div>
+            <div><span data-i18n="👥 Contributors:">👥 Contributors:</span> <strong id="totalUsers">0</strong></div>
+            <div><span data-i18n="❤️ Total Likes:">❤️ Total Likes:</span> <strong id="totalLikes">0</strong></div>
+          </div>
+        </div>
+
+        <div class="sidebar-card" style="background:var(--gold-100);border:1.5px solid var(--gold-400);">
+          <h4 style="color:var(--earth-700);" data-i18n="💡 Community Tips">💡 Community Tips</h4>
+          <ul style="font-size:.88rem;padding-left:16px;line-height:1.9;color:var(--earth-700);">
+            <li data-i18n="Be respectful to fellow farmers">Be respectful to fellow farmers</li>
+            <li data-i18n="Share your district when asking about local issues">Share your district when asking about local issues</li>
+            <li data-i18n="Add photos when describing crop problems">Add photos when describing crop problems</li>
+            <li data-i18n="Tag your season (Kharif/Rabi/Zaid)">Tag your season (Kharif/Rabi/Zaid)</li>
+          </ul>
+        </div>
+
+        <div class="sidebar-card">
+          <h4 data-i18n="☎️ Expert Helplines">☎️ Expert Helplines</h4>
+          <div style="font-size:.88rem;line-height:2;">
+            <div><span data-i18n="Kisan Call:">🌾 Kisan Call:</span> <a href="tel:1800-180-1551"><strong>1800-180-1551</strong></a></div>
+            <div><span data-i18n="Agri Helpline:">🌱 Agri Helpline:</span> <a href="tel:1551"><strong>1551</strong></a></div>
+            <div><span data-i18n="Fasal Bima:">🌧️ Fasal Bima:</span> <a href="tel:1800-200-7710"><strong>1800-200-7710</strong></a></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    const topics = ["General","Crop Disease","Market Prices","Weather","Fertilizers","Seeds","Government Schemes","Irrigation"];
+    let sortMode = 'newest';
+    let activeTopicFilter = null;
+    const likedSet = new Set(JSON.parse(localStorage.getItem('ks_liked_posts') || '[]'));
+
+    async function addPost() {
+      const title   = document.getElementById("postTitle").value.trim();
+      const message = document.getElementById("postMessage").value.trim();
+      let user      = document.getElementById("postUser").value.trim();
+      if (!user) {
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+          const currentUser = Auth.getUser();
+          if (currentUser && currentUser.name) {
+            user = currentUser.name;
+          }
+        }
+      }
+      if (!user) user = "Anonymous Farmer";
+      const topic   = document.getElementById("postTopic").value;
+      if (!title || !message) { alert("Please fill in the title and message."); return; }
+
+      const btn = document.querySelector('.post-form .btn-primary');
+      btn.textContent = '⏳ Posting…'; btn.disabled = true;
+      try {
+        await KisanAPI.forum.createPost({ user, title, message, topic });
+        document.getElementById("postTitle").value   = "";
+        document.getElementById("postMessage").value = "";
+        document.getElementById("postUser").value    = "";
+        await renderPosts();
+    if(typeof Auth!=="undefined") Auth.updateNav();
+        window.scrollTo({ top: document.getElementById("postsContainer").offsetTop - 80, behavior:'smooth' });
+      } catch(e) { alert('Error posting: ' + e.message); }
+      btn.textContent = '📤 Post Discussion'; btn.disabled = false;
+    }
+
+    function setSortMode(mode, el) {
+      sortMode = mode;
+      document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderPosts();
+    if(typeof Auth!=="undefined") Auth.updateNav();
+    }
+
+    async function toggleLike(id) {
+      try {
+        const res = await KisanAPI.forum.toggleLike(id);
+        if (res.action === 'liked') likedSet.add(id);
+        else likedSet.delete(id);
+        localStorage.setItem('ks_liked_posts', JSON.stringify([...likedSet]));
+        await renderPosts();
+    if(typeof Auth!=="undefined") Auth.updateNav();
+      } catch(e) { console.error(e); }
+    }
+
+    async function submitComment(event, postId) {
+      event.preventDefault();
+      const form = event.target;
+      const input = form.querySelector('input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      const btn = form.querySelector('button');
+      btn.textContent = '⏳';
+      btn.disabled = true;
+
+      let user = "Anonymous Farmer";
+      if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+        const currentUser = Auth.getUser();
+        if (currentUser && currentUser.name) {
+          user = currentUser.name;
+        }
+      }
+
+      try {
+        await KisanAPI.forum.addComment(postId, { user, message });
+        input.value = '';
+        await renderPosts();
+      } catch(e) {
+        alert('Error adding comment: ' + e.message);
+      } finally {
+        btn.textContent = 'Reply';
+        btn.disabled = false;
+      }
+    }
+
+    async function renderPosts() {
+      const search = (document.getElementById("searchPosts")?.value || "");
+      try {
+        const params = { sort: sortMode };
+        if (activeTopicFilter) params.topic = activeTopicFilter;
+        if (search) params.search = search;
+
+        const { posts }  = await KisanAPI.forum.getPosts(params);
+        const statsData  = await KisanAPI.forum.getStats();
+
+        document.getElementById("postCount").textContent   = posts.length;
+        document.getElementById("totalPosts").textContent  = statsData.total || 0;
+        document.getElementById("totalUsers").textContent  = statsData.users || 0;
+        document.getElementById("totalLikes").textContent  = statsData.totalLikes || 0;
+
+        if (!posts.length) {
+          const noPostsText = typeof Lang !== 'undefined' ? Lang.t('No discussions found. Be the first to post!') : 'No discussions found. Be the first to post!';
+          document.getElementById("postsContainer").innerHTML = `<div class="empty-forum"><div class="icon">💬</div><p>${noPostsText}</p></div>`;
+          return;
+        }
+
+        document.getElementById("postsContainer").innerHTML = posts.map(p => {
+          const pId = p._id || p.id;
+          const isLiked = likedSet.has(pId);
+          const timeStr = p.created_at
+            ? new Date(p.created_at).toLocaleString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+            : (p.time || '');
+
+          const trTitle = typeof Lang !== 'undefined' ? Lang.t(p.title) : p.title;
+          const trTopic = typeof Lang !== 'undefined' ? Lang.t(p.topic) : p.topic;
+          const trMessage = typeof Lang !== 'undefined' ? Lang.t(p.message) : p.message;
+          const trUser = typeof Lang !== 'undefined' ? Lang.t(p.user) : p.user;
+
+          const comments = p.comments || [];
+          const commentsHtml = comments.map(c => {
+            const cTime = c.createdAt
+              ? new Date(c.createdAt).toLocaleString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+              : '';
+            const trCUser = typeof Lang !== 'undefined' ? Lang.t(c.user) : c.user;
+            const trCMessage = typeof Lang !== 'undefined' ? Lang.t(c.message) : c.message;
+
+            return `
+              <div class="comment-item">
+                <div class="comment-meta">
+                  <strong>👤 ${trCUser}</strong>
+                  <span>🕐 ${cTime}</span>
+                </div>
+                <div class="comment-body">${trCMessage}</div>
+              </div>
+            `;
+          }).join('');
+
+          const loggedIn = typeof Auth !== 'undefined' && Auth.isLoggedIn();
+          const writeCommentPh = typeof Lang !== 'undefined' ? Lang.t('Write a comment...') : 'Write a comment...';
+          const replyBtnText = typeof Lang !== 'undefined' ? Lang.t('Reply') : 'Reply';
+
+          const commentFormHtml = loggedIn
+            ? `
+              <form class="comment-form" onsubmit="submitComment(event, '${pId}')">
+                <input type="text" placeholder="${writeCommentPh}" required />
+                <button type="submit" class="btn btn-primary">${replyBtnText}</button>
+              </form>
+            `
+            : `
+              <div style="margin-top: 10px; font-size: 0.85rem; color: var(--neutral-500); background: var(--neutral-50); padding: 8px 12px; border-radius: var(--radius-md); border-left: 3px solid var(--gold-400);">
+                ${typeof Lang !== 'undefined' ? Lang.t('🔒 Please') : '🔒 Please'} <a href="login.html" style="color: var(--green-700); font-weight: 600; text-decoration: underline;">${typeof Lang !== 'undefined' ? Lang.t('login') : 'login'}</a> ${typeof Lang !== 'undefined' ? Lang.t('to write a reply.') : 'to write a reply.'}
+              </div>
+            `;
+
+          const commentsLabel = typeof Lang !== 'undefined' ? Lang.t('Comments') : 'Comments';
+          const noCommentsText = typeof Lang !== 'undefined' ? Lang.t('No comments yet. Write one below!') : 'No comments yet. Write one below!';
+          const commentsSection = `
+            <div class="comments-section">
+              <div class="comments-title">💬 ${commentsLabel} (${comments.length})</div>
+              <div class="comments-list">
+                ${commentsHtml || `<p style="font-size:0.8rem;color:var(--neutral-400);margin:4px 0;">${noCommentsText}</p>`}
+              </div>
+              ${commentFormHtml}
+            </div>
+          `;
+
+          const likeBtnText = isLiked 
+            ? (typeof Lang !== 'undefined' ? Lang.t('Liked') : 'Liked')
+            : (typeof Lang !== 'undefined' ? Lang.t('Like') : 'Like');
+
+          return `
+          <div class="post-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <h4>${trTitle}</h4>
+              <span class="badge badge-green">${trTopic}</span>
+            </div>
+            <div class="post-body">${trMessage}</div>
+            <div class="post-meta">
+              <span>👤 ${trUser}</span>
+              <span>🕐 ${timeStr}</span>
+              <span style="margin-left:auto;">
+                <button class="like-btn ${isLiked?'liked':''}" onclick="toggleLike('${pId}')">
+                  ❤️ ${p.likes || 0} ${likeBtnText}
+                </button>
+              </span>
+            </div>
+            ${commentsSection}
+          </div>`;
+        }).join('');
+      } catch(e) {
+        document.getElementById("postsContainer").innerHTML = `<div class="empty-forum"><div class="icon">⚠️</div><p>Could not load posts. Check connection.</p></div>`;
+      }
+    }
+
+    // Build topic filter chips
+    const tf = document.getElementById("topicFilters");
+    [{ label:"all_topics", value:null }, ...topics.map(t => ({ label:t, value:t }))].forEach(({ label, value }) => {
+      const chip = document.createElement("span");
+      chip.className = "topic-chip" + (value === null ? " active" : "");
+      chip.textContent = typeof Lang !== 'undefined' ? Lang.t(label) : label;
+      chip.onclick = () => {
+        activeTopicFilter = value;
+        document.querySelectorAll(".topic-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        renderPosts();
+    if(typeof Auth!=="undefined") Auth.updateNav();
+      };
+      tf.appendChild(chip);
+    });
+
+    function initAuthViews() {
+      const loggedIn = typeof Auth !== 'undefined' && Auth.isLoggedIn();
+      const postForm = document.querySelector('.post-form');
+      if (postForm) {
+        if (loggedIn) {
+          // If logged in, ensure inputs are clean and placeholder/labels reflect active user
+          const currentUser = Auth.getUser();
+          const nameInputGroup = document.querySelector('.post-form .input-group:first-of-type');
+          if (nameInputGroup) {
+            nameInputGroup.style.display = 'none'; // Hide the "Your Name (optional)" field as they are logged in
+          }
+        } else {
+          // If guest, show registration CTA
+          const joinCommunityText = typeof Lang !== 'undefined' ? Lang.t('🔒 Join Our Community') : '🔒 Join Our Community';
+          const onlyRegText = typeof Lang !== 'undefined' ? Lang.t('Only registered members of Kishan Sathi can start discussions or write comments.') : 'Only registered members of Kishan Sathi can start discussions or write comments.';
+          const loginPartText = typeof Lang !== 'undefined' ? Lang.t('🔑 Login to Participate') : '🔑 Login to Participate';
+
+          postForm.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <h3 style="color: var(--green-800); margin-bottom: 12px;">${joinCommunityText}</h3>
+              <p style="color: var(--neutral-600); font-size: 0.95rem; margin-bottom: 16px;">
+                ${onlyRegText}
+              </p>
+              <a href="login.html" class="btn btn-primary" style="text-decoration: none; display: inline-block;">${loginPartText}</a>
+            </div>
+          `;
+        }
+      }
+    }
+
+    renderPosts();
+    if(typeof Auth!=="undefined") {
+      Auth.updateNav();
+      initAuthViews();
+    }
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

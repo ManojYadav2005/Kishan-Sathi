@@ -1,0 +1,13 @@
+Paste agricultural store and product/seed images in this folder.
+Expected filenames:
+- agristore1.jpg
+- kishankhad.jpg
+- dkagri.jpg
+- bhagri.jpg
+- Wheatseeds.jpg
+- Sugarcane.jpg
+- paddyseeds.jpg
+
+
+
+/Users/manojyadav/Downloads/store/moongseed.jpg /Users/manojyadav/Downloads/store/kishankhad.jpg /Users/manojyadav/Downloads/store/SUPER FORD INSECTICIDES LTD..jpg /Users/manojyadav/Downloads/store/bhagri.jpg /Users/manojyadav/Downloads/store/Pantnagarbijbhandar.jpg /Users/manojyadav/Downloads/store/dkagri.jpg /Users/manojyadav/Downloads/store/Wheatseeds.jpg /Users/manojyadav/Downloads/store/garden.jpg /Users/manojyadav/Downloads/store/vermi.jpg /Users/manojyadav/Downloads/store/aphid.jpg /Users/manojyadav/Downloads/store/carrot.jpg /Users/manojyadav/Downloads/store/potash.jpg /Users/manojyadav/Downloads/store/termite.jpg /Users/manojyadav/Downloads/store/hose.jpg /Users/manojyadav/Downloads/store/urea.jpg /Users/manojyadav/Downloads/store/maizeseed.jpg /Users/manojyadav/Downloads/store/Sugarcane.jpg /Users/manojyadav/Downloads/store/bottlegourd.jpg /Users/manojyadav/Downloads/store/black.jpg /Users/manojyadav/Downloads/store/bio.jpg /Users/manojyadav/Downloads/store/borer.jpg /Users/manojyadav/Downloads/store/dap.jpg /Users/manojyadav/Downloads/store/potatoseed.jpg /Users/manojyadav/Downloads/store/hoe.jpg /Users/manojyadav/Downloads/store/paddyseeds.jpg /Users/manojyadav/Downloads/store/organic.jpg /Users/manojyadav/Downloads/store/drip.jpg /Users/manojyadav/Downloads/store/Coriander.jpg /Users/manojyadav/Downloads/store/npk.jpg /Users/manojyadav/Downloads/store/peasseed.jpg /Users/manojyadav/Downloads/store/soil.jpg /Users/manojyadav/Downloads/store/sickle.jpg /Users/manojyadav/Downloads/store/radish.jpg /Users/manojyadav/Downloads/store/brinjalseed.jpg /Users/manojyadav/Downloads/store/cauliflowerseed.jpg /Users/manojyadav/Downloads/store/pumpkinseed.jpg /Users/manojyadav/Downloads/store/barleyseed.jpg /Users/manojyadav/Downloads/store/fungicide.jpg /Users/manojyadav/Downloads/store/chickpeas.jpg /Users/manojyadav/Downloads/store/larvicide.jpg /Users/manojyadav/Downloads/store/hand.jpg /Users/manojyadav/Downloads/store/herbal.jpg /Users/manojyadav/Downloads/store/neem.jpg /Users/manojyadav/Downloads/store/tomatoseed.jpg /Users/manojyadav/Downloads/store/okraseed.jpg /Users/manojyadav/Downloads/store/mite.jpg /Users/manojyadav/Downloads/store/shovel.jpg

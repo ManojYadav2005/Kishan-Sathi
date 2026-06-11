@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loan Calculator | Kishan Sathi</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .calc-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    @media(max-width:760px){ .calc-layout { grid-template-columns:1fr; } }
+
+    .calc-form {
+      background: var(--white); border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md); padding: 32px;
+      border: 1px solid var(--neutral-100);
+    }
+    .calc-form h3 { color:var(--green-800); margin-bottom:24px; font-size:1.3rem; font-family: var(--font-display); }
+
+    .range-group { margin-bottom:22px; }
+    .range-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .range-header label { font-weight:600; color:var(--neutral-700); }
+    .range-value { background:linear-gradient(135deg, var(--green-600), var(--green-500)); color:white; padding:4px 12px; border-radius:var(--radius-full); font-weight:700; font-size:.9rem; box-shadow: 0 2px 8px rgba(26,122,82,.2); }
+    input[type="range"] {
+      width:100%; height:6px; border-radius:99px;
+      -webkit-appearance:none; appearance:none;
+      background:linear-gradient(to right, var(--green-500) 0%, var(--green-500) var(--pct, 50%), var(--neutral-200) var(--pct, 50%));
+      cursor:pointer; outline:none; border:none; padding:0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:22px; height:22px;
+      background:linear-gradient(135deg, var(--green-600), var(--green-500)); border-radius:50%;
+      border:3px solid white; box-shadow:0 2px 8px rgba(0,0,0,.25);
+      transition: transform .15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .result-panel {
+      background: var(--white); border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md); padding: 32px;
+      border: 1px solid var(--neutral-100);
+    }
+    .result-panel h3 { color:var(--green-800); margin-bottom:22px; font-size:1.3rem; font-family: var(--font-display); }
+    .emi-highlight {
+      background: linear-gradient(135deg,var(--green-800),var(--green-600),var(--green-500));
+      border-radius: var(--radius-xl); padding:28px; text-align:center;
+      color:white; margin-bottom:24px;
+      box-shadow: 0 8px 24px rgba(26,122,82,.3);
+    }
+    .emi-highlight .emi-label { font-size:.9rem; opacity:.85; }
+    .emi-highlight .emi-value { font-size:3rem; font-weight:900; margin:6px 0; font-family: var(--font-display); }
+    .emi-highlight .emi-sub   { font-size:.85rem; opacity:.7; }
+
+    .result-rows { margin-bottom:22px; }
+    .result-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:13px 0; border-bottom:1px solid var(--neutral-100);
+    }
+    .result-row:last-child { border:none; font-weight:700; font-size:1.08rem; }
+    .result-row .label { color:var(--neutral-600); font-size:.92rem; }
+    .result-row .value { font-weight:700; }
+    .result-row .value.green { color:var(--green-600); }
+    .result-row .value.gold  { color:var(--gold-500); }
+    .result-row .value.red   { color:var(--red-500); }
+
+    .chart-wrap { margin-top:22px; }
+
+    /* Amortization table */
+    .amort-section { background:var(--white); border-radius:var(--radius-2xl); box-shadow:var(--shadow-sm); padding:28px; margin-top:32px; border: 1px solid var(--neutral-100); }
+    .amort-section h4 { color:var(--green-800); margin-bottom:18px; font-family: var(--font-display); }
+    .amort-table { width:100%; border-collapse:separate; border-spacing:0; font-size:.88rem; }
+    .amort-table th { background:linear-gradient(135deg, var(--green-800), var(--green-700)); color:white; padding:12px 14px; text-align:right; font-size:.82rem; }
+    .amort-table th:first-child { text-align:left; border-radius: var(--radius-md) 0 0 0; }
+    .amort-table th:last-child { border-radius: 0 var(--radius-md) 0 0; }
+    .amort-table td { padding:10px 14px; border-bottom:1px solid var(--neutral-100); text-align:right; }
+    .amort-table td:first-child { text-align:left; color:var(--neutral-500); }
+    .amort-table tbody tr { transition: var(--transition-fast); }
+    .amort-table tbody tr:hover td { background:var(--green-50); }
+
+    /* Schemes section */
+    .scheme-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin-top:18px; }
+    .scheme-card {
+      background:var(--white); border-radius:var(--radius-xl);
+      padding:18px; box-shadow:var(--shadow-sm);
+      border-left:3px solid var(--green-500);
+      text-decoration:none; color:inherit; transition:var(--transition);
+      border: 1px solid var(--neutral-100); border-left:3px solid var(--green-500);
+    }
+    .scheme-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); border-left-color:var(--gold-500); }
+    .scheme-card .scheme-name { font-weight:700; color:var(--green-700); margin-bottom:4px; font-family: var(--font-display); }
+    .scheme-card .scheme-desc { font-size:.83rem; color:var(--neutral-400); }
+
+    .kcc-panel {
+      background: var(--white); border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md); padding: 36px;
+      margin-top: 32px;
+      border-top: 4px solid var(--green-500);
+      border: 1px solid var(--neutral-100); border-top: 4px solid var(--green-500);
+    }
+    .kcc-panel h3 { color:var(--green-800); margin-bottom:8px; font-size:1.3rem; font-family: var(--font-display); }
+    .kcc-panel .subtitle { color:var(--neutral-400); font-size:.88rem; margin-bottom:28px; }
+    .kcc-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+    @media(max-width:640px){ .kcc-layout { grid-template-columns:1fr; } }
+    .unit-toggle { display:flex; border:2px solid var(--neutral-200); border-radius:var(--radius-md); overflow:hidden; margin-bottom:6px; }
+    .unit-btn { flex:1; padding:10px; border:none; background:none; cursor:pointer; font-weight:600; font-size:.88rem; font-family:var(--font-body); color:var(--neutral-500); transition:var(--transition); }
+    .unit-btn.active { background:linear-gradient(135deg, var(--green-600), var(--green-500)); color:#fff; }
+    .kcc-result {
+      display:none;
+      background: linear-gradient(135deg, var(--green-50), #f1f8e9);
+      border: 2px solid var(--green-300);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      text-align: center;
+      animation: fadeInUp .3s ease;
+    }
+    .kcc-result .kcc-amount { font-size: 2.6rem; font-weight: 900; color: var(--green-700); margin: 10px 0; font-family: var(--font-display); }
+    .kcc-result .kcc-breakdown { font-size: .84rem; color: var(--neutral-500); margin-top: 8px; }
+    .kcc-links { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
+    .kcc-link {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:12px 22px; border-radius:var(--radius-md);
+      text-decoration:none; font-weight:700; font-size:.88rem;
+      transition:var(--transition);
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .kcc-link.sbi { background:linear-gradient(135deg, #1565c0, #1E88E5); color:#fff; }
+    .kcc-link.upg { background:linear-gradient(135deg, #2e7d32, #43A047); color:#fff; }
+    .kcc-link:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,.2); }
+  </style>
+</head>
+<body>
+
+  <div class="page-hero" style="background:linear-gradient(160deg,#041A11 0%,#0B3D2E 40%,var(--green-700) 80%,var(--green-600) 100%);">
+    <h1>💰 <span data-i18n="loan_title">Kisan Loan Calculator</span></h1>
+    <p data-i18n="loan_sub">Plan your EMI, interest, and repayment schedule for agri loans</p>
+  </div>
+
+  <div class="container section">
+    <div class="calc-layout">
+
+      <!-- Form -->
+      <div class="calc-form">
+        <h3 data-i18n="loan_parameters">⚙️ Loan Parameters</h3>
+
+        <div class="input-group">
+          <label data-i18n="loan_purpose">Loan Purpose</label>
+          <select id="purpose" onchange="calcEMI()">
+            <option value="Crop Loan" data-i18n="Crop Loan">🌾 Crop Loan</option>
+            <option value="Tractor Purchase" data-i18n="Tractor Purchase">🚜 Tractor Purchase</option>
+            <option value="Irrigation Setup" data-i18n="Irrigation Setup">💧 Irrigation Setup</option>
+            <option value="Fertilizer Purchase" data-i18n="Fertilizer Purchase">🌿 Fertilizer Purchase</option>
+            <option value="Land Development" data-i18n="Land Development">🏡 Land Development</option>
+            <option value="KCC" data-i18n="KCC">💳 Kisan Credit Card (KCC)</option>
+          </select>
+        </div>
+
+        <div class="range-group">
+          <div class="range-header">
+            <label data-i18n="loan_amount">Loan Amount</label>
+            <span class="range-value" id="amountDisplay">₹1,00,000</span>
+          </div>
+          <input type="range" id="amount" min="10000" max="2000000" step="10000" value="100000" oninput="updateRange(this,'amountDisplay','₹',true); calcEMI();" />
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--neutral-400);margin-top:4px;"><span>₹10,000</span><span>₹20,00,000</span></div>
+        </div>
+
+        <div class="range-group">
+          <div class="range-header">
+            <label data-i18n="interest_rate">Interest Rate (% per year)</label>
+            <span class="range-value" id="interestDisplay">7%</span>
+          </div>
+          <input type="range" id="interest" min="4" max="18" step="0.25" value="7" oninput="updateRange(this,'interestDisplay','',false,'%'); calcEMI();" />
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--neutral-400);margin-top:4px;"><span>4%</span><span>18%</span></div>
+        </div>
+
+        <div class="range-group">
+          <div class="range-header">
+            <label data-i18n="duration">Loan Duration (Years)</label>
+            <span class="range-value" id="durationDisplay">3 yrs</span>
+          </div>
+          <input type="range" id="duration" min="1" max="15" step="1" value="3" oninput="updateRange(this,'durationDisplay','',false,' yrs'); calcEMI();" />
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--neutral-400);margin-top:4px;"><span>1 yr</span><span>15 yrs</span></div>
+        </div>
+
+        <div class="alert-box alert-success mt-2" data-i18n="kcc_tip_html">
+          💡 <strong>KCC Tip:</strong> Kisan Credit Card loans under ₹3 lakh carry only <strong>4% effective interest</strong> (7% rate − 3% Govt. subvention).
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="result-panel">
+        <h3 data-i18n="results">📊 Results</h3>
+        <div class="emi-highlight">
+          <div class="emi-label" data-i18n="monthly_emi">Monthly EMI</div>
+          <div class="emi-value" id="emiDisplay">₹0</div>
+          <div class="emi-sub" id="purposeDisplay">Crop Loan</div>
+        </div>
+
+        <div class="result-rows">
+          <div class="result-row"><span class="label" data-i18n="loan_amount">Loan Amount</span><span class="value green" id="rPrincipal">₹0</span></div>
+          <div class="result-row"><span class="label" data-i18n="total_interest">Total Interest</span><span class="value red" id="rInterest">₹0</span></div>
+          <div class="result-row"><span class="label" data-i18n="total_payable">Total Payable</span><span class="value" id="rTotal">₹0</span></div>
+          <div class="result-row"><span class="label" data-i18n="interest_ratio">Interest-to-Loan Ratio</span><span class="value gold" id="rRatio">0%</span></div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="emiChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amortization -->
+    <div class="amort-section">
+      <h4 data-i18n="yearly_amortization">📅 Yearly Amortization Schedule</h4>
+      <div class="table-wrapper">
+        <table class="amort-table">
+          <thead>
+            <tr>
+              <th data-i18n="Year" style="text-align:left;">Year</th>
+              <th data-i18n="EMI Paid">EMI Paid</th>
+              <th data-i18n="Principal">Principal</th>
+              <th data-i18n="Interest">Interest</th>
+              <th data-i18n="Balance">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="amortBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Govt Schemes -->
+    <div class="section">
+      <h3 class="text-green mb-2" data-i18n="gov_loan_schemes">🏛️ Government Loan Schemes for Farmers</h3>
+      <div class="scheme-grid">
+        <a href="https://pmkisan.gov.in" target="_blank" class="scheme-card">
+          <div class="scheme-name">🌾 PM-Kisan Samman Nidhi</div>
+          <div class="scheme-desc">₹6,000/year direct benefit to all eligible farmers</div>
+        </a>
+        <a href="https://agricoop.nic.in/en/kcc" target="_blank" class="scheme-card">
+          <div class="scheme-name">💳 Kisan Credit Card (KCC)</div>
+          <div class="scheme-desc">Up to ₹3 lakh at 4% effective interest with Govt subvention</div>
+        </a>
+        <a href="https://pmfby.gov.in" target="_blank" class="scheme-card">
+          <div class="scheme-name">🌧️ PM Fasal Bima Yojana</div>
+          <div class="scheme-desc">Crop insurance to protect against weather & pest losses</div>
+        </a>
+        <a href="https://nabard.org" target="_blank" class="scheme-card">
+          <div class="scheme-name">🏦 NABARD Farm Loans</div>
+          <div class="scheme-desc">Long-term loans for irrigation, machinery & land dev.</div>
+        </a>
+        <a href="https://enam.gov.in" target="_blank" class="scheme-card">
+          <div class="scheme-name">🛒 eNAM Portal</div>
+          <div class="scheme-desc">Sell produce online at best mandi price directly</div>
+        </a>
+        <a href="https://soilhealth.dac.gov.in" target="_blank" class="scheme-card">
+          <div class="scheme-name">🧪 Soil Health Card</div>
+          <div class="scheme-desc">Free soil testing to optimize fertilizer use & costs</div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="container">
+    <div class="kcc-panel">
+      <h3 data-i18n="kcc_eligibility_engine">💳 KCC Pre-Eligibility Engine</h3>
+      <p class="subtitle" data-i18n="kcc_standards_desc">Calculate your Kisan Credit Card limit based on UP government banking standards (Scale of Finance)</p>
+      <div class="kcc-layout">
+        <div>
+          <div class="input-group">
+            <label data-i18n="target_crop">Target Crop</label>
+            <select id="kccCrop" onchange="calcKCC()">
+              <option value="wheat" data-i18n="Wheat">🌾 Wheat</option>
+              <option value="paddy" data-i18n="Paddy">🌿 Paddy</option>
+              <option value="sugarcane" data-i18n="Sugarcane">🎋 Sugarcane</option>
+              <option value="potato" data-i18n="Potato">🥔 Potato</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label data-i18n="land_holding_size">Land Holding Size</label>
+            <div class="unit-toggle">
+              <button class="unit-btn active" id="btnHectare" onclick="setUnit('hectare')" data-i18n="hectares">Hectares</button>
+              <button class="unit-btn" id="btnBigha" onclick="setUnit('bigha')" data-i18n="bighas">Bighas</button>
+            </div>
+            <input type="number" id="kccLand" min="0.1" step="0.1" value="1" placeholder="Enter size" data-i18n-ph="enter_size" oninput="calcKCC()" />
+          </div>
+          <button class="btn btn-primary btn-full" onclick="calcKCC()" data-i18n="calculate_kcc_limit">⚡ Calculate KCC Limit</button>
+        </div>
+        <div>
+          <div class="kcc-result" id="kccResult">
+            <div style="font-size:1.05rem;font-weight:700;color:var(--green-800);" data-i18n="est_kcc_limit">✅ Estimated KCC Credit Limit</div>
+            <div class="kcc-amount" id="kccAmount">₹0</div>
+            <div class="kcc-breakdown" id="kccBreakdown"></div>
+            <div class="kcc-links">
+              <a href="https://sbi.co.in/web/agri-rural/agriculture-banking/crop-loan/kisan-credit-card" target="_blank" class="kcc-link sbi" data-i18n="apply_at_sbi">🏦 Apply at SBI</a>
+              <a href="https://www.upgraminsachdhan.com/kcc" target="_blank" class="kcc-link upg" data-i18n="up_gramin_bank">🌾 UP Gramin Bank</a>
+            </div>
+          </div>
+          <div id="kccPlaceholder" style="text-align:center;padding:40px;color:var(--neutral-400);">
+            <div style="font-size:2.5rem;margin-bottom:10px;">💳</div>
+            <p data-i18n="kcc_placeholder_text">Enter your crop and land size to calculate your KCC limit</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chart;
+
+    function fmt(n) { return "₹" + Math.round(n).toLocaleString('en-IN'); }
+
+    function updateRange(el, displayId, prefix, isIndian, suffix='') {
+      const v = parseFloat(el.value);
+      const pct = ((v - el.min)/(el.max - el.min)) * 100;
+      el.style.setProperty('--pct', pct + '%');
+      let display = prefix;
+      if (isIndian) display += parseInt(v).toLocaleString('en-IN');
+      else display += v;
+      display += suffix ? (typeof Lang !== 'undefined' ? ' ' + Lang.t(suffix.trim()) : suffix) : '';
+      document.getElementById(displayId).textContent = display;
+    }
+
+    function calcEMI() {
+      const P = parseFloat(document.getElementById('amount').value);
+      const r = parseFloat(document.getElementById('interest').value) / 12 / 100;
+      const n = parseInt(document.getElementById('duration').value) * 12;
+      const purpose = document.getElementById('purpose').value;
+
+      const emi   = r > 0 ? (P * r * Math.pow(1+r,n)) / (Math.pow(1+r,n) - 1) : P/n;
+      const total = emi * n;
+      const intPay = total - P;
+      const ratio  = ((intPay/P)*100).toFixed(1);
+
+      document.getElementById('emiDisplay').textContent  = fmt(emi);
+      document.getElementById('purposeDisplay').textContent = typeof Lang !== 'undefined' ? Lang.t(purpose) : purpose;
+      document.getElementById('rPrincipal').textContent  = fmt(P);
+      document.getElementById('rInterest').textContent   = fmt(intPay);
+      document.getElementById('rTotal').textContent      = fmt(total);
+      document.getElementById('rRatio').textContent      = ratio + '%';
+
+      // Donut chart
+      if (chart) chart.destroy();
+      const labels = ['Principal', 'Interest'].map(l => typeof Lang !== 'undefined' ? Lang.t(l) : l);
+      chart = new Chart(document.getElementById('emiChart'), {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: [P, intPay], backgroundColor: ['#2e8b57','#e6a817'], borderWidth: 3, borderColor: ['#fff','#fff'] }]
+        },
+        options: {
+          responsive: true, cutout: '65%',
+          plugins: {
+            legend: { position: 'bottom', labels: { font:{ size:13 }, padding:16 } },
+            tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.raw) } }
+          }
+        }
+      });
+
+      // Amortization
+      let balance = P;
+      let html = '';
+      const yearWord = typeof Lang !== 'undefined' ? Lang.t('Year') : 'Year';
+      for (let yr = 1; yr <= parseInt(document.getElementById('duration').value); yr++) {
+        let yPrincipal = 0, yInterest = 0;
+        for (let m = 0; m < 12; m++) {
+          const iAmt = balance * r;
+          const pAmt = emi - iAmt;
+          yInterest += iAmt;
+          yPrincipal += pAmt;
+          balance -= pAmt;
+        }
+        html += `<tr>
+          <td style="text-align:left;">${yearWord} ${yr}</td>
+          <td>${fmt(emi*12)}</td>
+          <td style="color:var(--green-600);">${fmt(yPrincipal)}</td>
+          <td style="color:var(--red-500);">${fmt(yInterest)}</td>
+          <td><strong>${fmt(Math.max(0,balance))}</strong></td>
+        </tr>`;
+      }
+      document.getElementById('amortBody').innerHTML = html;
+    }
+
+    // Init ranges
+    ['amount','interest','duration'].forEach(id => {
+      const el = document.getElementById(id);
+      const v = parseFloat(el.value);
+      const pct = ((v - el.min)/(el.max - el.min))*100;
+      el.style.setProperty('--pct', pct + '%');
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+      calcEMI();
+    });
+  </script>
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script src="auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof Auth!=="undefined") Auth.updateNav(); });</script>
+<script>
+    let kccUnit = 'hectare';
+
+    function setUnit(unit) {
+      kccUnit = unit;
+      document.getElementById('btnHectare').classList.toggle('active', unit === 'hectare');
+      document.getElementById('btnBigha').classList.toggle('active', unit === 'bigha');
+      calcKCC();
+    }
+
+    function calcKCC() {
+      const crop = document.getElementById('kccCrop').value;
+      const raw  = parseFloat(document.getElementById('kccLand').value);
+      if (!raw || raw <= 0) return;
+
+      const hectares = kccUnit === 'bigha' ? raw * 0.2529 : raw;
+
+      const basePerHectare = { wheat: 60000, paddy: 62000, sugarcane: 100000, potato: 120000 };
+      const cropNames      = { wheat: 'Wheat', paddy: 'Paddy', sugarcane: 'Sugarcane', potato: 'Potato' };
+
+      const base        = basePerHectare[crop] * hectares;
+      const postHarvest = base * 0.10;
+      const maintenance = base * 0.20;
+      const total       = base + postHarvest + maintenance;
+
+      const fmtIN = n => '₹' + Math.round(n).toLocaleString('en-IN');
+
+      const cropValText = typeof Lang !== 'undefined' ? Lang.t(cropNames[crop]) : cropNames[crop];
+      const cropLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_crop') : 'Crop';
+      const landLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_land') : 'Land (Hectares)';
+      const baseLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_base') : 'Base (Scale of Finance)';
+      const postLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_post') : '+ 10% Post-harvest';
+      const maintLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_maint') : '+ 20% Maintenance';
+      const totalLabel = typeof Lang !== 'undefined' ? Lang.t('kcc_breakdown_total') : 'Total KCC Limit';
+
+      document.getElementById('kccAmount').textContent = fmtIN(total);
+      document.getElementById('kccBreakdown').innerHTML = `
+        <table style="width:100%;text-align:left;margin-top:12px;font-size:.83rem;border-collapse:collapse;">
+          <tr><td style="padding:4px 0;color:#555;">${cropLabel}</td><td style="font-weight:700;">${cropValText}</td></tr>
+          <tr><td style="padding:4px 0;color:#555;">${landLabel}</td><td style="font-weight:700;">${hectares.toFixed(3)} ha</td></tr>
+          <tr><td style="padding:4px 0;color:#555;">${baseLabel}</td><td style="font-weight:700;">${fmtIN(base)}</td></tr>
+          <tr><td style="padding:4px 0;color:#555;">${postLabel}</td><td style="font-weight:700;">${fmtIN(postHarvest)}</td></tr>
+          <tr><td style="padding:4px 0;color:#555;">${maintLabel}</td><td style="font-weight:700;">${fmtIN(maintenance)}</td></tr>
+          <tr style="border-top:1px solid #c8e6c9;"><td style="padding:6px 0;font-weight:700;color:#1a6b3a;">${totalLabel}</td><td style="font-weight:800;color:#1a6b3a;font-size:1rem;">${fmtIN(total)}</td></tr>
+        </table>
+      `;
+
+      document.getElementById('kccResult').style.display      = 'block';
+      document.getElementById('kccPlaceholder').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

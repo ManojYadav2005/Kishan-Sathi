@@ -1,0 +1,21 @@
+Paste crop guide/education detail images in this folder.
+Expected filenames:
+- sugarcane.jpg
+- tomato.jpg
+- garlic.jpg
+- Mustard.jpg
+- barley.jpg
+- chickpea.jpg
+- brinjal.jpeg
+- Cauliflower.jpg
+- Lentil.jpg
+- peas.jpg
+- Ladyfinger.jpg
+- BottleGourd.jpg
+- Coriander.jpg
+- Sorghum(Jowar).jpg
+- Soybean.jpg
+- Turmeric.jpg
+- Spinach.jpg
+- Fenugreek.jpg
+- Cabbage.jpg
