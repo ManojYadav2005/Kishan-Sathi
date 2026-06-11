@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Local database files
+db/*.db
+db/*.db-shm
+db/*.db-wal
+
+# Uploaded user files
+backend/uploads/avatars/*
+backend/uploads/stores/*
+backend/uploads/forum/*
+!backend/uploads/**/.gitkeep
+
+# Mac OS files
+.DS_Store
